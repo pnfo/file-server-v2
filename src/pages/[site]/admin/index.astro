@@ -1,0 +1,82 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro'
+import Icon from '../../../components/Icon.astro'
+import type { IconName } from '../../../components/Icons.astro'
+import { getSizeInfo, getTypeInfo } from '../../../lib/format.ts'
+import { parseId } from '../../../lib/site.ts'
+const s = Astro.locals.site
+if (!s) return Astro.rewrite('/404')
+const { store, base } = s
+const q = (Astro.url.searchParams.get('q') || '').trim().toLowerCase()
+const folderId = parseId(Astro.url.searchParams.get('folder') || '0') || 0
+const folder = folderId ? store.getAny(folderId) : undefined
+const collator = new Intl.Collator('si')
+// admin sees everything, including unpublished and missing entries.
+// search: id, plain substring (finds unpublished/missing too) and the public singlish search
+const found = q ? new Set(store.search(q, 500).entries.map(e => e.id)) : undefined
+const rows = (found
+  ? store.all().filter(e => found.has(e.id) || String(e.id) === q || e.name.toLowerCase().includes(q) || (e.version || '').toLowerCase().includes(q))
+  : store.all().filter(e => e.parentId === folderId))
+  .sort((a, b) => (a.kind === b.kind ? 0 : a.kind === 'folder' ? -1 : 1) || collator.compare(a.name, b.name))
+  .slice(0, 500)
+const crumbs = folder ? [...store.parents(folder.id), folder] : []
+const fileCount = rows.filter(r => r.kind === 'file').length, folderCount = rows.length - fileCount
+---
+<AdminLayout title={folder?.name || 'Files'}>
+  <div class="flex flex-wrap items-end justify-between gap-4 mb-5">
+    <div class="min-w-0">
+      <nav class="flex flex-wrap items-center gap-1 text-[13px] text-text-muted mb-1">
+        <a href={`${base}/admin`} class="hover:text-text">All files</a>
+        {crumbs.map(c => <><Icon name="chevron" class="text-xs opacity-60" /><a href={`${base}/admin?folder=${c.id}`} class="hover:text-text">{c.name}</a></>)}
+      </nav>
+      <h1 class="text-2xl font-normal truncate">{q ? `Search: ${q}` : folder ? folder.name : 'All files'}</h1>
+      <p class="text-[13px] text-text-muted mt-0.5">{folderCount} folders · {fileCount} files{rows.length === 500 ? ' (first 500)' : ''}</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <form class="relative">
+        <Icon name="magnify" class="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted" />
+        <input name="q" value={q} placeholder="Search name, version or id" class="field w-64 pl-8" />
+      </form>
+      {folder?.kind === 'folder' && <a class="btn" href={`${base}/admin/edit/${folder.id}`}><Icon name="pencil" />Edit folder</a>}
+      <button class="btn" data-new-folder={folderId}><Icon name="folderPlus" />New folder</button>
+      <a class="btn-primary" href={`${base}/admin/upload?folder=${folderId}`}><Icon name="upload" />Upload</a>
+    </div>
+  </div>
+
+  <div class="card overflow-hidden">
+    <table class="w-full border-collapse">
+      <thead class="bg-background/40 border-b border-border">
+        <tr><th class="th w-16">ID</th><th class="th">Name</th><th class="th hidden md:table-cell">Version</th><th class="th text-right w-24">Size</th><th class="th text-right w-24 hidden sm:table-cell">Downloads</th><th class="th w-24"></th></tr>
+      </thead>
+      <tbody class="divide-y divide-border/60">
+        {rows.map(e => {
+          const t = getTypeInfo(e.type), size = getSizeInfo(e.sizeBytes)
+          const href = e.kind === 'folder' ? `${base}/admin?folder=${e.id}` : `${base}/admin/edit/${e.id}`
+          return (
+            <tr class={`hover:bg-surface-hover/50 ${e.isPublished && !e.missingSince ? '' : 'text-text-muted'}`}>
+              <td class="td text-[13px] text-text-muted tabular-nums">{e.id}</td>
+              <td class="td">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  <Icon name={t.icon as IconName} class={`text-lg ${t.color}`} />
+                  <a href={href} class="hover:text-primary truncate">{e.name}</a>
+                  {e.kind === 'folder' && <span class="text-[12px] text-text-muted shrink-0">{e.numEntries}</span>}
+                  {!e.isPublished && <span class="badge bg-amber-500/15 text-amber-600 dark:text-amber-400">Unpublished</span>}
+                  {e.missingSince && <span class="badge bg-rose-500/15 text-rose-600 dark:text-rose-400">Missing</span>}
+                  {e.parentId === -1 && <span class="badge bg-surface-hover text-text-muted">Unlisted</span>}
+                </div>
+              </td>
+              <td class="td text-text-muted hidden md:table-cell truncate max-w-48">{e.version}</td>
+              <td class="td text-right tabular-nums whitespace-nowrap">{size.numeral} <span class="text-text-muted text-[12px]">{size.unit}</span></td>
+              <td class="td text-right tabular-nums text-text-muted hidden sm:table-cell">{e.kind === 'file' ? e.downloads.toLocaleString('en') : ''}</td>
+              <td class="td py-1 text-right whitespace-nowrap">
+                <a class="btn-icon" href={`${base}/admin/edit/${e.id}`} title="Edit" aria-label="Edit"><Icon name="pencil" /></a>
+                <a class="btn-icon" href={`${base}/${e.id}`} title="View on site" aria-label="View on site"><Icon name="openInNew" /></a>
+              </td>
+            </tr>
+          )
+        })}
+      </tbody>
+    </table>
+    {!rows.length && <p class="py-12 text-center text-text-muted">{q ? 'No matches.' : 'This folder is empty.'}</p>}
+  </div>
+</AdminLayout>

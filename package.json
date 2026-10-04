@@ -1,0 +1,34 @@
+{
+  "name": "file-server-v2",
+  "type": "module",
+  "version": "2.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.18"
+  },
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "start": "node dist/server/entry.mjs",
+    "check": "astro check",
+    "test": "node --test test/*.test.ts",
+    "sync": "node scripts/sync.ts",
+    "test:e2e": "node test/e2e/admin.e2e.mjs"
+  },
+  "dependencies": {
+    "@astrojs/node": "^11.1.6",
+    "@aws-sdk/client-s3": "^3.1144.0",
+    "@aws-sdk/s3-request-presigner": "^3.1144.0",
+    "@mdi/js": "^7.4.47",
+    "@pnfo/singlish-search": "1.2.5",
+    "astro": "^7.3.5"
+  },
+  "devDependencies": {
+    "@astrojs/check": "*",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^22",
+    "pdfjs-dist": "^6.3.289",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9"
+  }
+}

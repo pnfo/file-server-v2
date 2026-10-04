@@ -1,0 +1,21 @@
+---
+// One inline SVG sprite per page (instead of the 400 KB MDI webfont). Use with <Icon name="..." />.
+import * as mdi from '@mdi/js'
+export const ICONS = {
+  pdf: mdi.mdiFilePdfBox, html: mdi.mdiLanguageHtml5, folder: mdi.mdiFolder, zip: mdi.mdiFolderZip,
+  android: mdi.mdiAndroid, word: mdi.mdiMicrosoftWord, excel: mdi.mdiMicrosoftExcel, image: mdi.mdiImage,
+  text: mdi.mdiTextBox, audio: mdi.mdiVolumeHigh, file: mdi.mdiFile, home: mdi.mdiHome, menu: mdi.mdiMenu,
+  magnify: mdi.mdiMagnify, newBox: mdi.mdiNewBox, theme: mdi.mdiThemeLightDark, chevron: mdi.mdiChevronRight,
+  share: mdi.mdiShare, shareVariant: mdi.mdiShareVariant, download: mdi.mdiDownload, save: mdi.mdiTrayArrowDown,
+  sort: mdi.mdiSort, arrowUp: mdi.mdiArrowUp, arrowDown: mdi.mdiArrowDown, alert: mdi.mdiAlertCircle,
+  check: mdi.mdiCheckCircle, calendar: mdi.mdiCalendarMonth, images: mdi.mdiImageMultiple, account: mdi.mdiAccount,
+  at: mdi.mdiAt, laptop: mdi.mdiLaptop, openInNew: mdi.mdiOpenInNew, copy: mdi.mdiContentCopy,
+  book: mdi.mdiBookOpenVariant, chrome: mdi.mdiGoogleChrome, safari: mdi.mdiAppleSafari, info: mdi.mdiInformation,
+  pencil: mdi.mdiPencil, delete: mdi.mdiDelete, upload: mdi.mdiUpload, eye: mdi.mdiEye, eyeOff: mdi.mdiEyeOff,
+  refresh: mdi.mdiRefresh, logout: mdi.mdiLogout, folderPlus: mdi.mdiFolderPlus, close: mdi.mdiClose,
+} as const
+export type IconName = keyof typeof ICONS
+---
+<svg xmlns="http://www.w3.org/2000/svg" style="display:none" aria-hidden="true">
+  {Object.entries(ICONS).map(([name, d]) => <symbol id={`i-${name}`} viewBox="0 0 24 24"><path d={d} /></symbol>)}
+</svg>

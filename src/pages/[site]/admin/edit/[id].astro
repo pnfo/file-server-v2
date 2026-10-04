@@ -1,0 +1,121 @@
+---
+import AdminLayout from '../../../../layouts/AdminLayout.astro'
+import Icon from '../../../../components/Icon.astro'
+import type { IconName } from '../../../../components/Icons.astro'
+import { getSizeInfo, getTypeInfo } from '../../../../lib/format.ts'
+import { parseId } from '../../../../lib/site.ts'
+const s = Astro.locals.site
+if (!s) return Astro.rewrite('/404')
+const { store, base } = s
+const e = store.getAny(parseId(Astro.params.id))
+if (!e) return Astro.redirect(`${base}/admin`)
+const t = getTypeInfo(e.type), size = getSizeInfo(e.sizeBytes)
+const previews = store.previews(e)
+const crumbs = store.parents(e.id)
+const hasChildren = e.kind === 'folder' && store.all().some(c => c.parentId === e.id)
+const isFile = e.kind === 'file'
+---
+<AdminLayout title={`Edit ${e.name}`}>
+  <nav class="flex flex-wrap items-center gap-1 text-[13px] text-text-muted mb-1">
+    <a href={`${base}/admin`} class="hover:text-text">All files</a>
+    {crumbs.map(c => <><Icon name="chevron" class="text-xs opacity-60" /><a href={`${base}/admin?folder=${c.id}`} class="hover:text-text">{c.name}</a></>)}
+  </nav>
+  <div class="flex flex-wrap items-center gap-3 mb-6">
+    <Icon name={t.icon as IconName} class={`text-3xl ${t.color}`} />
+    <h1 class="text-2xl font-normal min-w-0 break-words">{e.name}</h1>
+    {e.isPublished ? <span class="badge bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">Published</span> : <span class="badge bg-amber-500/15 text-amber-600 dark:text-amber-400">Unpublished</span>}
+    {e.missingSince && <span class="badge bg-rose-500/15 text-rose-600 dark:text-rose-400">Missing from bucket since {e.missingSince}</span>}
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
+    <div class="flex flex-col gap-6 min-w-0">
+      <form id="meta-form" data-id={e.id} class="card">
+        <div class="card-head"><h2 class="card-title">Details</h2></div>
+        <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4">
+          <div class="sm:col-span-2"><label class="label" for="f-name">Name</label><input id="f-name" name="name" value={e.name} required class="field" />
+            <p class="hint">Changing the name{isFile ? ' or version' : ''} renames the object in the bucket.</p></div>
+          {isFile && <>
+            <div><label class="label" for="f-version">Version / note</label><input id="f-version" name="version" value={e.version || ''} class="field" /><p class="hint">The [..] part of the file name, shown next to the name.</p></div>
+            <div><label class="label" for="f-author">Author</label><input id="f-author" name="author" value={e.author || ''} class="field" /></div>
+            <div><label class="label" for="f-py">Publishing year</label><input id="f-py" name="publishingYear" inputmode="numeric" value={e.publishingYear || ''} class="field" /></div>
+            <div><label class="label" for="f-pr">Printed year</label><input id="f-pr" name="printedYear" inputmode="numeric" value={e.printedYear || ''} class="field" /></div>
+            <div class="sm:col-span-2">
+              <span class="label">Description</span>
+              <div class="border border-border rounded-md overflow-hidden focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/25">
+                <div class="flex gap-0.5 p-1 border-b border-border bg-background/40" data-rte-toolbar>
+                  <button type="button" class="btn-icon font-semibold" data-cmd="bold" title="Bold">B</button>
+                  <button type="button" class="btn-icon italic" data-cmd="italic" title="Italic">I</button>
+                  <button type="button" class="btn-icon" data-cmd="insertUnorderedList" title="Bulleted list">•</button>
+                  <button type="button" class="btn-icon" data-cmd="insertOrderedList" title="Numbered list">1.</button>
+                  <button type="button" class="btn-icon" data-cmd="createLink" title="Link">🔗</button>
+                  <button type="button" class="btn-icon text-xs" data-cmd="removeFormat" title="Clear formatting">Tx</button>
+                </div>
+                <div id="description" contenteditable="true" class="rich min-h-32 px-3 py-2 focus:outline-none" set:html={e.description || ''}></div>
+              </div>
+            </div>
+          </>}
+        </div>
+        <div class="px-5 py-3.5 border-t border-border flex items-center gap-3">
+          <button class="btn-primary">Save changes</button>
+          <span id="save-status" class="text-[13px] text-text-muted"></span>
+        </div>
+      </form>
+
+      {e.type === 'pdf' && (
+        <section class="card" id="previews" data-id={e.id}>
+          <div class="card-head"><h2 class="card-title">Preview pages</h2><span id="pdf-status" class="text-[13px] text-text-muted"></span></div>
+          <div class="p-5 flex flex-col gap-4">
+            <p class="text-[13px] text-text-muted">Pages are rendered in this browser with pdf.js and uploaded as public JPEGs. Needs bucket CORS (Bucket page).</p>
+            <div class="flex flex-wrap items-end gap-2">
+              <div><label class="label" for="f-pages">Pages</label><input id="f-pages" name="pages" class="field w-44" placeholder="e.g. 1, 12" value={(e.previewPages || []).join(', ')} /></div>
+              <button class="btn" data-render><Icon name="eye" />Render</button>
+              <button class="btn-primary" data-save-previews disabled><Icon name="upload" />Upload previews</button>
+            </div>
+            <div id="preview-canvases" class="grid grid-cols-2 sm:grid-cols-3 gap-3 empty:hidden" data-zoom-group></div>
+            {previews.length > 0 && <div>
+              <p class="label">Current{e.previewPages ? '' : ' (old thumbnails)'}</p>
+              <div class="grid grid-cols-3 sm:grid-cols-4 gap-3" data-zoom-group>{previews.map(p => (
+                <figure class="flex flex-col gap-1">
+                  <img src={p.url} alt="" data-zoom data-caption={p.page ? `Page ${p.page}` : ''} class="rounded-md border border-border cursor-zoom-in" onerror="this.closest('figure').remove()" />
+                  <figcaption class="text-[12px] text-text-muted">{p.page ? `Page ${p.page}` : 'Page unknown'}</figcaption>
+                </figure>
+              ))}</div>
+            </div>}
+          </div>
+        </section>
+      )}
+    </div>
+
+    <aside class="flex flex-col gap-6">
+      <section class="card">
+        <div class="card-head"><h2 class="card-title">Status</h2></div>
+        <div class="p-5 flex flex-col gap-3">
+          <p class="text-[13px] text-text-muted">{e.isPublished ? 'Visible on the public site and in search.' : 'Hidden from the public site and search. The file stays in the bucket.'}{e.kind === 'folder' && ' Applies to everything inside.'}</p>
+          <button class="btn w-full" data-publish={e.id} data-value={e.isPublished ? '0' : '1'}><Icon name={e.isPublished ? 'eyeOff' : 'eye'} />{e.isPublished ? 'Unpublish' : 'Publish'}</button>
+          <a class="btn w-full" href={`${base}/${e.id}`}><Icon name="openInNew" />View on site</a>
+          {e.kind === 'folder' && <a class="btn w-full" href={`${base}/admin?folder=${e.id}`}><Icon name="folder" />Open folder</a>}
+        </div>
+      </section>
+      <section class="card">
+        <div class="card-head"><h2 class="card-title">Info</h2></div>
+        <dl class="px-5 py-2 text-[13px]">
+          <div class="kv"><dt>ID</dt><dd>{e.id}</dd></div>
+          <div class="kv"><dt>Type</dt><dd>{e.kind === 'folder' ? 'Folder' : e.type.toUpperCase()}</dd></div>
+          <div class="kv"><dt>Size</dt><dd>{size.numeral} {size.unit}</dd></div>
+          {isFile && <div class="kv"><dt>Downloads</dt><dd>{e.downloads.toLocaleString('en')}</dd></div>}
+          {e.numPages && <div class="kv"><dt>Pages</dt><dd>{e.numPages}</dd></div>}
+          <div class="kv"><dt>Added</dt><dd>{e.dateAdded}</dd></div>
+          <div class="kv"><dt>Updated</dt><dd>{e.updatedAt.slice(0, 10)}</dd></div>
+        </dl>
+        <p class="px-5 pb-4 text-[12px] text-text-muted break-all">{e.s3Key}</p>
+      </section>
+      <section class="card border-rose-500/30">
+        <div class="card-head"><h2 class="card-title text-rose-600 dark:text-rose-400">Danger zone</h2></div>
+        <div class="p-5 flex flex-col gap-3">
+          <p class="text-[13px] text-text-muted">{isFile ? 'Deletes the file and its previews from the bucket, and its download count. This cannot be undone.' : hasChildren ? 'Only empty folders can be deleted.' : 'Removes this empty folder.'}</p>
+          <button class="btn-danger w-full" data-delete={e.id} data-name={e.name} data-parent={e.parentId > 0 ? e.parentId : 0} disabled={hasChildren}><Icon name="delete" />Delete {isFile ? 'file' : 'folder'}</button>
+        </div>
+      </section>
+    </aside>
+  </div>
+</AdminLayout>

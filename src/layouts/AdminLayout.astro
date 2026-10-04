@@ -1,0 +1,68 @@
+---
+import '../styles/global.css'
+import '../styles/admin.css'
+import Icons from '../components/Icons.astro'
+import Icon from '../components/Icon.astro'
+import { prefixFor, SITE_IDS } from '../lib/config.ts'
+interface Props { title: string }
+const { title } = Astro.props
+const s = Astro.locals.site!
+const url = Astro.url
+const sub = url.pathname.slice(s.base.length) // "/admin/..."
+
+// "Public site" opens the public page for whatever is being looked at here
+const edit = /^\/admin\/edit\/(\d+)/.exec(sub)
+const q = url.searchParams.get('q')?.trim(), folder = url.searchParams.get('folder')
+const publicHref = edit ? `${s.base}/${edit[1]}`
+  : q ? `${s.base}/search/${encodeURIComponent(q.toLowerCase())}`
+  : folder && folder !== '0' ? `${s.base}/${folder}` : `${s.base}/`
+
+const nav = [
+  { href: `${s.base}/admin`, label: 'Files', active: sub === '/admin' || sub.startsWith('/admin/edit') },
+  { href: `${s.base}/admin/upload${folder ? `?folder=${folder}` : ''}`, label: 'Upload', active: sub.startsWith('/admin/upload') },
+  { href: `${s.base}/admin/bucket`, label: 'Bucket', active: sub.startsWith('/admin/bucket') },
+]
+---
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>{title} · {s.id} admin</title>
+  <link rel="icon" href="/fs-static/favicon.ico" />
+  <script is:inline>try { document.documentElement.classList.toggle('dark', localStorage.getItem('fs-theme') !== 'light') } catch {}</script>
+</head>
+<body data-base={s.base} class="admin">
+  <Icons />
+  {Astro.locals.isAdmin && (
+    <header class="bg-surface border-b border-border sticky top-0 z-40">
+      <div class="max-w-[1200px] mx-auto px-4 h-14 flex items-center gap-6">
+        <a href={`${s.base}/admin`} class="flex items-center gap-2 font-semibold text-[15px]">
+          <span class="size-7 rounded-md bg-primary/15 text-primary grid place-items-center"><Icon name="book" /></span>
+          Tipitaka.lk
+        </a>
+        <div class="flex items-center p-0.5 rounded-lg bg-background border border-border">
+          {SITE_IDS.map(id => (
+            <a href={`/${prefixFor(id, s.isAlias)}/admin`}
+              class={`px-3 h-7 grid place-items-center rounded-md text-[13px] font-medium ${id === s.id ? 'bg-surface-hover text-text shadow-sm' : 'text-text-muted hover:text-text'}`}>
+              {id === 'library' ? 'Library' : 'Cloud'}
+            </a>
+          ))}
+        </div>
+        <nav class="hidden sm:flex items-center gap-1">
+          {nav.map(n => <a href={n.href} class={`px-3 h-8 grid place-items-center rounded-md text-[13px] font-medium ${n.active ? 'text-text bg-surface-hover' : 'text-text-muted hover:text-text'}`}>{n.label}</a>)}
+        </nav>
+        <div class="ml-auto flex items-center gap-1">
+          <a href={publicHref} class="btn h-8 text-[13px]" title="Open this page on the public site"><Icon name="openInNew" />Public site</a>
+          <button type="button" data-theme-toggle class="btn-icon" title="Toggle theme"><Icon name="theme" /></button>
+          <form method="post" action={`${s.base}/admin/logout`}><button class="btn-icon" title="Log out"><Icon name="logout" /></button></form>
+        </div>
+      </div>
+    </header>
+  )}
+  <main class="max-w-[1200px] w-full mx-auto px-4 py-6"><slot /></main>
+  <div id="toast" role="status" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-text text-background text-sm px-4 py-2 rounded-lg shadow-lg opacity-0 pointer-events-none transition-opacity"></div>
+  <script>import '../client/admin.ts'</script>
+</body>
+</html>

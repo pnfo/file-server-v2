@@ -1,0 +1,28 @@
+---
+import AdminLayout from '../../../layouts/AdminLayout.astro'
+import Icon from '../../../components/Icon.astro'
+const s = Astro.locals.site
+if (!s) return Astro.rewrite('/404')
+const lastSync = s.store.db.getMeta('last_sync')
+---
+<AdminLayout title="Bucket">
+  <h1 class="text-2xl font-normal mb-6">Bucket</h1>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+    <section class="card">
+      <div class="card-head"><h2 class="card-title">Sync from bucket</h2></div>
+      <div class="p-5 flex flex-col gap-3">
+        <p class="text-[13px] text-text-muted">Reads <code>{s.cfg.s3RootFolder}/</code> (file names <code>name[version]&#123;id&#125;.type</code>) and updates the database. Downloads and metadata are kept; files that disappeared are hidden, not deleted.</p>
+        <p class="text-[13px]">Last sync: <span class="tabular-nums">{lastSync ? lastSync.replace('T', ' ').slice(0, 16) + ' UTC' : 'never'}</span></p>
+        <div class="flex gap-2"><button class="btn" data-sync="dry"><Icon name="refresh" />Dry run</button><button class="btn-primary" data-sync="run"><Icon name="refresh" />Sync now</button></div>
+      </div>
+    </section>
+    <section class="card">
+      <div class="card-head"><h2 class="card-title">CORS</h2></div>
+      <div class="p-5 flex flex-col gap-3">
+        <p class="text-[13px] text-text-muted">Browser uploads and preview rendering read and write the bucket directly from this site, which needs a CORS rule allowing GET/PUT from https://tipitaka.lk (and this origin). Public downloads don't need it.</p>
+        <div class="flex gap-2"><button class="btn" data-cors="get">Check</button><button class="btn" data-cors="set">Set CORS rule</button></div>
+      </div>
+    </section>
+  </div>
+  <pre id="report" class="card mt-6 p-4 text-[12px] leading-relaxed overflow-auto max-h-[480px] hidden"></pre>
+</AdminLayout>

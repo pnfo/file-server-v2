@@ -1,0 +1,40 @@
+---
+import Icon from './Icon.astro'
+interface Props { searchQuery?: string }
+const { searchQuery = '' } = Astro.props
+const { base, cfg } = Astro.locals.site!
+const navLink = 'p-2 text-text-muted hover:text-primary hover:bg-surface-hover rounded-lg transition-colors flex items-center gap-1'
+const menuLink = 'px-3 py-2 rounded-lg text-text hover:bg-surface-hover hover:text-primary flex items-center gap-2 w-full text-left'
+---
+<header class="bg-surface border-b border-border shadow-sm sticky top-0 z-40 h-12">
+  <div class="max-w-[1000px] mx-auto sm:px-4 h-full flex items-center justify-between gap-2">
+    <div class="relative h-full sm:hidden">
+      <button id="menu-btn" type="button" aria-label="මෙනුව" aria-expanded="false" aria-controls="menu"
+        class="h-full px-3.5 bg-amber-500/10 text-amber-500 flex items-center border-r border-amber-500/30 text-xl">
+        <Icon name="menu" />
+      </button>
+      <nav id="menu" hidden class="absolute left-0 top-12 w-52 bg-surface border border-border rounded-xl shadow-xl p-1.5 flex flex-col gap-1 z-50 text-sm">
+        <a href={`${base}/`} class={menuLink}><Icon name="home" class="text-lg text-primary" />මුල් පිටුව</a>
+        <a href={`${base}/recent/3`} class={menuLink}><Icon name="newBox" class="text-lg text-amber-500" />අලුත් ගොනු</a>
+        <button type="button" data-theme-toggle class={menuLink}><Icon name="theme" class="text-lg text-info" />තේමාව වෙනස් කරන්න</button>
+      </nav>
+    </div>
+
+    <a href={`${base}/`} class="hidden sm:flex items-center gap-1.5 text-lg text-primary hover:opacity-90 shrink-0">
+      <Icon name="book" class="text-xl" /><span>{cfg.rootFolderName}</span>
+    </a>
+
+    <form action={`${base}/search`} method="get" role="search" class="flex-1 sm:max-w-[420px] h-full relative flex items-center">
+      <Icon name="magnify" class="absolute left-3 text-text-muted text-lg pointer-events-none" />
+      <input id="search-input" name="q" type="search" value={searchQuery} autocomplete="off" enterkeyhint="search"
+        placeholder="සෙවුම් පද මෙතැන යොදන්න" aria-label="සොයන්න"
+        class="w-full h-full sm:h-9 bg-background border-0 sm:border border-border text-text rounded-none sm:rounded-lg pl-9 pr-3 text-base focus:outline-none focus:ring-2 focus:ring-primary" />
+    </form>
+
+    <div class="hidden sm:flex items-center gap-1 shrink-0">
+      <a href={`${base}/`} title="මුල් පිටුව" class={`${navLink} text-xl`}><Icon name="home" /></a>
+      <a href={`${base}/recent/3`} class={`${navLink} text-sm`}><Icon name="newBox" class="text-lg" /><span>අලුත් ගොනු</span></a>
+      <button type="button" data-theme-toggle title="තේමාව වෙනස් කරන්න" class={`${navLink} text-xl`}><Icon name="theme" /></button>
+    </div>
+  </div>
+</header>

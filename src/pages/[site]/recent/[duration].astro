@@ -1,0 +1,24 @@
+---
+import Layout from '../../../layouts/Layout.astro'
+import EntryTable from '../../../components/EntryTable.astro'
+import Icon from '../../../components/Icon.astro'
+const s = Astro.locals.site
+if (!s) return Astro.rewrite('/404')
+// production semantics: the number is months
+const parsed = parseInt(Astro.params.duration || '', 10)
+const months = parsed > 0 && parsed <= 120 ? parsed : 3
+const options = [...new Set([1, 2, 3, 4, 6, 9, 12, months])].sort((a, b) => a - b)
+Astro.response.headers.set('Cache-Control', 'no-cache')
+---
+<Layout title={`පසුගිය මාස ${months} තුළ අලුතෙන් එකතු කළ ගොනු`} description={`Newly added recent files, books, recordings - tipitaka.lk බෞද්ධ ${s.cfg.rootFolderName}.`}>
+  <form class="flex flex-wrap items-center gap-2 text-base py-2" action={`${s.base}/recent`} data-recent-form>
+    <Icon name="calendar" class="text-primary text-xl" />
+    <label for="months">පසුගිය මාස</label>
+    <select id="months" name="m" class="bg-background border border-border rounded-lg px-2 py-1">
+      {options.map(m => <option value={m} selected={m === months}>{m}</option>)}
+    </select>
+    <span>තුළ අලුතෙන් එකතු කළ ගොනු පහතින්.</span>
+    <noscript><button class="text-info underline">පෙන්වන්න</button></noscript>
+  </form>
+  <EntryTable entries={s.store.recent(months * 30)} exclude={['parent']} sort={{ key: 'dateAdded', dir: 'desc' }} />
+</Layout>

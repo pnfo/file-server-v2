@@ -1,0 +1,9 @@
+{
+  "fileTypeName": "පොත්",
+  "rootFolderName": "පුස්තකාලය",
+  "webUrlRoot": "https://tipitaka.lk/library/",
+  "s3RootFolder": "library",
+  "ogImage": "https://tipitaka.lk/library/og-library-500x300.jpg",
+  "displayThumbs": true,
+  "idToInfoFile": "../server-data/library/id-to-info.json"
+}

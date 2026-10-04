@@ -1,0 +1,60 @@
+---
+import '../styles/global.css'
+import Header from '../components/Header.astro'
+import Icons from '../components/Icons.astro'
+
+interface Props {
+  title?: string
+  description?: string
+  canonicalPath?: string // path below the site root, e.g. "123" - canonical always points at production
+  searchQuery?: string
+}
+const s = Astro.locals.site!
+const { cfg } = s
+const {
+  title = cfg.rootFolderName,
+  description = `${cfg.fileTypeName} භාගත කරගන්න - tipitaka.lk බෞද්ධ ${cfg.rootFolderName}.`,
+  canonicalPath,
+  searchQuery = '',
+} = Astro.props
+const fullTitle = title ? `${title} - Tipitaka.lk` : 'Tipitaka.lk'
+---
+<!doctype html>
+<html lang="si" class="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{fullTitle}</title>
+  <meta name="description" content={description} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:image" content={cfg.ogImage} />
+  <meta property="og:type" content="website" />
+  {canonicalPath !== undefined && <link rel="canonical" href={cfg.webUrlRoot + canonicalPath} />}
+  {s.isAlias && <meta name="robots" content="noindex" />}
+  <link rel="icon" href="/fs-static/favicon.ico" />
+  <link rel="preload" href="/fs-static/fonts/UN-Abhaya.woff2" as="font" type="font/woff2" crossorigin />
+  <script is:inline>
+    // theme: our key, else the old site's saved setting (same origin), else dark
+    try {
+      let t = localStorage.getItem('fs-theme')
+      if (!t) { const o = JSON.parse(localStorage.getItem('settings') || '{}'); t = o.darkMode === false ? 'light' : 'dark' }
+      document.documentElement.classList.toggle('dark', t !== 'light')
+    } catch {}
+  </script>
+</head>
+<body data-base={s.base} data-web-root={cfg.webUrlRoot}>
+  <Icons />
+  <Header searchQuery={searchQuery} />
+  <main class="flex-grow flex flex-col items-center px-2 py-2 sm:px-6 sm:py-4">
+    <div class="w-full max-w-[1000px]">
+      <slot />
+    </div>
+  </main>
+  <div id="toast" role="status" aria-live="polite"
+    class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-info text-white text-sm px-5 py-2 rounded-full shadow-lg opacity-0 pointer-events-none transition-opacity duration-300"></div>
+  <script>
+    import '../client/site.ts'
+  </script>
+</body>
+</html>

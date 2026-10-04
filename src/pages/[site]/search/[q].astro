@@ -1,0 +1,11 @@
+---
+import Layout from '../../../layouts/Layout.astro'
+import SearchResults from '../../../components/SearchResults.astro'
+const s = Astro.locals.site
+if (!s) return Astro.rewrite('/404')
+const query = (Astro.params.q || '').trim().slice(0, 100)
+Astro.response.headers.set('Cache-Control', 'no-cache')
+---
+<Layout title={`“${query}” සෙවුමේ ප්‍රතිඵල`} description={`“${query}” යන සෙවුම සඳහා ගැළපෙන ගොනු - tipitaka.lk බෞද්ධ ${s.cfg.rootFolderName}.`} searchQuery={query}>
+  <SearchResults query={query} />
+</Layout>

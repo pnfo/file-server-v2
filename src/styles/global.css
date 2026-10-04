@@ -1,0 +1,91 @@
+@import "tailwindcss";
+
+/* dark mode follows the .dark class on <html> (default dark, toggled in the header) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* UN-Abhaya, Sinhala only and normal weight only.
+   "abhaya-si" covers just the Sinhala block, so Latin text and digits fall through to the system font;
+   "abhaya" (full range) is used via .si for lines that mix Sinhala with Latin (buttons, notices). */
+@font-face {
+  font-family: 'abhaya-si';
+  src: url('/fs-static/fonts/UN-Abhaya.woff2') format('woff2'), url('/fs-static/fonts/UN-Abhaya.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0D80-0DFF, U+200C-200D;
+}
+@font-face {
+  font-family: 'abhaya';
+  src: url('/fs-static/fonts/UN-Abhaya.woff2') format('woff2'), url('/fs-static/fonts/UN-Abhaya.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* colour tokens from design-concerns.md (matching the Vuetify light/dark themes) */
+:root {
+  --c-background: 250 250 250;
+  --c-surface: 255 255 255;
+  --c-surface-hover: 240 240 240;
+  --c-border: 224 224 224;
+  --c-primary: 230 81 0;
+  --c-text: 33 33 33;
+  --c-text-muted: 97 97 97;
+  --c-info: 21 101 192;
+  --c-link: 21 101 192;
+  --c-success: 46 125 50;
+  --c-warning: 245 127 23;
+  --c-error: 198 40 40;
+}
+html.dark {
+  --c-background: 26 26 26;
+  --c-surface: 33 33 33;
+  --c-surface-hover: 45 45 45;
+  --c-border: 51 51 51;
+  --c-primary: 255 167 38;
+  --c-text: 240 240 240;
+  --c-text-muted: 176 190 197;
+  --c-info: 100 181 246;
+  --c-link: 144 202 249; /* blue lighten-3: softer on the dark background than info */
+  --c-success: 129 199 132;
+  --c-warning: 255 152 0;
+  --c-error: 229 115 115;
+}
+
+@theme {
+  --font-sans: 'abhaya-si', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans Sinhala', sans-serif;
+  --font-si: 'abhaya', 'abhaya-si', ui-sans-serif, system-ui, sans-serif;
+  --color-background: rgb(var(--c-background));
+  --color-surface: rgb(var(--c-surface));
+  --color-surface-hover: rgb(var(--c-surface-hover));
+  --color-border: rgb(var(--c-border));
+  --color-primary: rgb(var(--c-primary));
+  --color-text: rgb(var(--c-text));
+  --color-text-muted: rgb(var(--c-text-muted));
+  --color-info: rgb(var(--c-info));
+  --color-link: rgb(var(--c-link));
+  --color-success: rgb(var(--c-success));
+  --color-warning: rgb(var(--c-warning));
+  --color-error: rgb(var(--c-error));
+}
+
+@layer base {
+  html { color-scheme: light; }
+  html.dark { color-scheme: dark; }
+  body { @apply font-sans bg-background text-text min-h-screen flex flex-col; font-synthesis-weight: none; } /* UN-Abhaya has no bold: never fake one */
+}
+/* in a layer so utilities like `hidden` still win over these */
+@layer components {
+.si { font-family: var(--font-si); font-weight: 400; }
+.icon { display: inline-block; width: 1em; height: 1em; fill: currentColor; flex-shrink: 0; vertical-align: -0.125em; }
+/* description HTML written in the admin editor */
+.rich p { margin: 0.4em 0; }
+.rich ul { list-style: disc; padding-left: 1.4em; }
+.rich ol { list-style: decimal; padding-left: 1.4em; }
+.rich a { color: var(--color-info); text-decoration: underline; }
+.rich b, .rich strong { font-family: ui-sans-serif, system-ui, sans-serif; font-weight: 600; }
+}
+
+/* lightbox dialog (client/lightbox.ts) */
+dialog.lightbox[open] { animation: lb-in 120ms ease-out; }
+@keyframes lb-in { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: none; } }

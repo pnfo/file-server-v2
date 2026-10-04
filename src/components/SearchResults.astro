@@ -1,0 +1,21 @@
+---
+// Rendered both inside the search page and alone as the live-search fragment (api/search.astro).
+import EntryTable from './EntryTable.astro'
+import Notice from './Notice.astro'
+import { SEARCH_MAX_RESULTS } from '../lib/store.ts'
+interface Props { query: string }
+const { query } = Astro.props
+const { cfg, store } = Astro.locals.site!
+const { entries, error } = store.search(query)
+const max = SEARCH_MAX_RESULTS
+const [icon, color, text] =
+  !query ? ['alert', 'text-rose-500', 'සෙවුම් පදයක් ඇතුළත් කර නොමැත.']
+  : error ? ['alert', 'text-rose-500', `“${query}” යන සෙවුම සඳහා Singlish ප්‍රභේද වැඩි ප්‍රමාණයක් ඇත. කරුණාකර තවත් අකුරු එකතු කරන්න.`]
+  : !entries.length ? ['alert', 'text-rose-500', `“${query}” යන සෙවුම සඳහා ගැළපෙන ගොනු ${cfg.rootFolderName}ේ අඩංගු නොවේ.`]
+  : entries.length < max ? ['check', 'text-emerald-500', `“${query}” යන සෙවුම සඳහා ගැළපෙන ගොනු ${entries.length} ක් හමුවිය.`]
+  : ['alert', 'text-amber-500', `ඔබගේ “${query}” යන සෙවුම සඳහා ගැළපෙන ගොනු ${max} කට වඩා හමුවිය. එයින් මුල් ${max} පහත දැක්වේ.`]
+---
+<div id="search-results" data-title={`“${query}” සෙවුමේ ප්‍රතිඵල - Tipitaka.lk`}>
+  <Notice icon={icon as any} color={color}>{text}</Notice>
+  {entries.length > 0 && <EntryTable entries={entries} exclude={['dateAdded']} />}
+</div>

@@ -1,0 +1,9 @@
+---
+// Live-search fragment: just the results block, swapped in by client/site.ts so the input keeps focus.
+import SearchResults from '../../../components/SearchResults.astro'
+export const partial = true
+if (!Astro.locals.site) return new Response('Not found', { status: 404 })
+const query = (Astro.url.searchParams.get('q') || '').trim().slice(0, 100)
+Astro.response.headers.set('Cache-Control', 'no-cache')
+---
+<SearchResults query={query} />

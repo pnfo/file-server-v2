@@ -1,0 +1,6 @@
+---
+import type { IconName } from './Icons.astro'
+interface Props { name: IconName; class?: string; title?: string }
+const { name, class: cls = '', title } = Astro.props
+---
+<svg class={`icon ${cls}`} aria-hidden={title ? undefined : 'true'} role={title ? 'img' : undefined}>{title && <title>{title}</title>}<use href={`#i-${name}`} /></svg>

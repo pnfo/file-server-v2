@@ -1,0 +1,5 @@
+---
+import Notice from './Notice.astro'
+const { base } = Astro.locals.site!
+---
+<Notice icon="alert" color="text-rose-500">ඔබ සොයන ගොනුව හෝ බහාලුම හමු නොවීය. <a href={`${base}/`} class="text-info hover:text-primary underline">මුල් පිටුවට යන්න</a>.</Notice>

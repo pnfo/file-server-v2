@@ -1,0 +1,8 @@
+node_modules
+dist
+.astro
+data/*.db*
+data/backups
+config/secrets.json
+public/fs-static/pdfjs-*
+.DS_Store

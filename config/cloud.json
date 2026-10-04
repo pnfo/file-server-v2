@@ -1,0 +1,9 @@
+{
+  "fileTypeName": "දේශනා",
+  "rootFolderName": "දහම් ගබඩාව",
+  "webUrlRoot": "https://tipitaka.lk/cloud/",
+  "s3RootFolder": "cloud",
+  "ogImage": "https://tipitaka.lk/cloud/og-cloud-500x300.png",
+  "displayThumbs": false,
+  "idToInfoFile": "../server-data/cloud/id-to-info.json"
+}

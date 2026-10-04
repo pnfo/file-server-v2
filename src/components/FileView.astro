@@ -1,0 +1,118 @@
+---
+// The only screen that starts a download (design §5.2). Every action is a plain link to a SigV2-signed CDN URL:
+// no interstitial page and no redirect, so Back always returns here.
+import Icon from './Icon.astro'
+import type { IconName } from './Icons.astro'
+import TopNav from './TopNav.astro'
+import type { Entry } from '../lib/db.ts'
+import { fontClass, formatNumber, getSizeInfo, getTypeInfo, isAudio, isViewable, sizeUnitColor } from '../lib/format.ts'
+import { chromeIntent, detectBrowser } from '../lib/ua.ts'
+
+interface Props { file: Entry }
+const { file } = Astro.props
+const { cfg, store } = Astro.locals.site!
+
+const type = getTypeInfo(file.type)
+const size = getSizeInfo(file.sizeBytes)
+const audio = isAudio(file.type)
+// audio: the player is for listening, so the button saves the file; everything else opens in the browser
+const primary = store.link(file, audio ? 'attachment' : 'inline')
+const save = !audio && isViewable(file.type) ? store.link(file, 'attachment') : null
+const player = audio ? store.link(file, 'stream') : null
+const previews = store.previews(file)
+
+const browser = detectBrowser(Astro.request.headers.get('user-agent') || '')
+const pageUrl = cfg.webUrlRoot + file.id
+const stats: [string, string][] = [
+  ...(file.author ? [['කතෘ', file.author] as [string, string]] : []),
+  ...(file.publishingYear ? [['ප්‍රකාශිත වර්ෂය', String(file.publishingYear)] as [string, string]] : []),
+  ...(file.printedYear ? [['මුද්‍රිත වර්ෂය', String(file.printedYear)] as [string, string]] : []),
+  ...(file.numPages ? [['පිටු ගණන', formatNumber(file.numPages)] as [string, string]] : []),
+  ['බාගත කිරීම් ගණන', formatNumber(file.downloads)],
+  ['වෙබ් අඩවියට එක් කළ දිනය', file.dateAdded],
+]
+const viewable = isViewable(file.type)
+const primaryText = !audio && viewable ? type.viewText : type.downloadText
+// UN-Abhaya stays normal weight, so the buttons carry no font-weight; "si" keeps mixed lines in one face
+const btn = 'si w-full sm:w-auto py-2.5 px-6 rounded-lg border flex items-center justify-center gap-2 text-base transition-colors'
+---
+<TopNav parents={store.parents(file.id)} current={{ name: '', icon: type.icon as IconName }} />
+
+<div class="flex flex-col gap-4 py-1" data-file={file.id}>
+  <div class="flex items-center gap-3 sm:gap-4">
+    <Icon name={type.icon as IconName} class={`text-7xl sm:text-8xl ${type.color}`} />
+    <div class="min-w-0">
+      <h1 class={`text-xl sm:text-2xl font-normal leading-snug break-words ${fontClass(file.name + '.x')}`}>{file.name}.{file.type}</h1>
+      {file.version && <p class={`text-sm text-text-muted mt-1 ${fontClass(file.version)}`}>{file.version}</p>}
+    </div>
+  </div>
+
+  {file.description && <div class="rich text-base text-text-muted leading-relaxed" set:html={file.description} />}
+
+  {player && (
+    <audio controls preload="none" src={player.url} data-hit={file.id} data-mode="stream" data-expires={player.expires} class="w-full">
+      ඔබගේ අතිරික්සුව (browser) audio අංගය සඳහා සහාය නොදක්වයි.
+    </audio>
+  )}
+
+  <dl class="flex flex-col gap-1.5 text-base">
+    {stats.map(([k, v]) => <div class="flex gap-2"><dt class="text-text-muted">{k} :</dt><dd class={`text-primary tabular-nums ${fontClass(v)}`}>{v}</dd></div>)}
+    <div class="flex gap-2"><dt class="text-text-muted">ගොනුවේ ප්‍රමාණය :</dt><dd class="tabular-nums">{size.numeral} <span class={`text-sm font-semibold ${sizeUnitColor(size.unit)}`}>{size.unit}</span></dd></div>
+  </dl>
+
+  {browser.inApp && (
+    <div class="flex flex-col gap-2 py-2 border-y border-border/50">
+      <p class="si flex items-start gap-2.5 text-base">
+        <Icon name="info" class="text-warning text-xl mt-0.5" />
+        <span>ඔබ {browser.appName ?? 'යෙදුමක'} ඇතුළත බ්‍රව්සරයක සිටී. එහි ගොනු බාගත කිරීම නිසි ලෙස සිදු නොවිය හැක.
+          {browser.os === 'android' && ' පහත බොත්තමෙන් මෙම පිටුව Chrome හි විවෘත කර බාගත කරගන්න.'}
+          {browser.os === 'ios' && ' ඉහළ කෙළවරේ ⋯ ඔබා “Open in Safari” / “Open in browser” තෝරන්න, නැතහොත් සබැඳිය පිටපත් කර Safari හි අලවන්න.'}
+        </span>
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3">
+        {browser.os === 'android' && (
+          <a href={chromeIntent(pageUrl)} class={`${btn} bg-amber-500 hover:bg-amber-400 border-amber-600 text-gray-900`}><Icon name="chrome" class="text-lg" />Chrome එකෙන් විවෘත කරන්න</a>
+        )}
+        {browser.os === 'ios' && (
+          <a href={`x-safari-${pageUrl}`} class={`${btn} bg-amber-500 hover:bg-amber-400 border-amber-600 text-gray-900`}><Icon name="safari" class="text-lg" />Safari එකෙන් විවෘත කරන්න</a>
+        )}
+        <button type="button" data-copy={pageUrl} class={`${btn} border-border hover:bg-surface-hover`}><Icon name="copy" class="text-lg" />සබැඳිය පිටපත් කරන්න</button>
+      </div>
+    </div>
+  )}
+
+  <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 my-1">
+    <a href={primary.url} data-hit={file.id} data-mode={audio ? 'attachment' : 'inline'} data-expires={primary.expires}
+      class={`${btn} bg-[#81c784] hover:bg-[#66bb6a] border-[#66bb6a] text-gray-900 shadow-sm`}>
+      <Icon name={!audio && viewable ? 'eye' : 'download'} class="text-lg" /><span>{primaryText}</span>
+    </a>
+    {save && (
+      <a href={save.url} data-hit={file.id} data-mode="attachment" data-expires={save.expires}
+        class={`${btn} bg-emerald-500/10 dark:bg-emerald-500/15 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-600/40`}>
+        <Icon name="download" class="text-lg" /><span>{type.downloadText}</span>
+      </a>
+    )}
+    <button type="button" data-copy={pageUrl}
+      class={`${btn} bg-sky-500/10 dark:bg-sky-500/20 hover:bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/40`}>
+      <Icon name="shareVariant" class="text-lg" /><span>බෙදාගැනීමට සබැඳියක් ගන්න</span>
+    </button>
+  </div>
+
+  {previews.length > 0 && (
+    <section class="flex flex-col gap-3 mt-2" data-previews>
+      <p class="flex items-center gap-2 text-text-muted text-base">
+        <Icon name="images" class="text-info text-lg" /><span>පොතේ පිටු කිහිපයක ඡායාරූප පහතින් බලන්න.</span>
+      </p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" data-zoom-group>
+        {previews.map(p => (
+          <figure class="relative bg-black/20 rounded-lg overflow-hidden border border-border/40">
+            <button type="button" data-zoom data-caption={p.page ? `පිටුව ${p.page}` : ''} class="block w-full cursor-zoom-in" aria-label={p.page ? `පිටුව ${p.page} විශාලව බලන්න` : 'විශාලව බලන්න'}>
+              <img src={p.url} alt={p.page ? `පිටුව ${p.page}` : file.name} loading="lazy" class="w-full h-auto" onerror="this.closest('figure').remove()" />
+            </button>
+            {p.page && <figcaption class="si absolute bottom-2 right-2 bg-black/75 text-white text-xs px-2 py-0.5 rounded pointer-events-none">පිටුව {p.page}</figcaption>}
+          </figure>
+        ))}
+      </div>
+    </section>
+  )}
+</div>
