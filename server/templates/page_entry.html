@@ -1,0 +1,6 @@
+{{define "content"}}
+  {{if not .D}}{{template "notFound" .S}}{{else if .D.Folder}}
+      {{template "topNav" .D.Nav}}
+      {{template "entryTable" .D.Table}}
+  {{else}}{{template "fileView" .D.File}}{{end}}
+{{end}}

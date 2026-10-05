@@ -1,0 +1,25 @@
+{{define "content"}}
+  <h1 class="text-2xl font-normal mb-1">Upload files</h1>
+  <p class="text-[13px] text-text-muted mb-6 max-w-2xl">Files go straight from this browser to the bucket. Name and version are read from the file name (<code>name[version].ext</code>) and can be edited first. PDFs get default previews (first and middle page) rendered here.</p>
+  <div class="card max-w-3xl">
+    <div class="p-5 flex flex-col gap-4">
+      <div><label class="label" for="upload-folder">Destination folder</label>
+        <select id="upload-folder" class="field">
+          <option value="0"{{if not .D.FolderID}} selected{{end}}>(root)</option>
+          {{$fid := .D.FolderID}}{{range .D.Folders}}<option value="{{.ID}}"{{if eq .ID $fid}} selected{{end}}>{{.Path}}</option>{{end}}
+        </select>
+      </div>
+      <label id="drop" class="border-2 border-dashed border-border rounded-xl py-10 px-6 text-center cursor-pointer hover:border-primary hover:bg-primary/5 transition-colors flex flex-col items-center gap-2">
+        <input id="upload-input" type="file" multiple class="sr-only">
+        {{icon "upload" "text-3xl text-text-muted"}}
+        <span class="font-medium">Drop files here, or click to choose</span>
+        <span class="text-[12px] text-text-muted">Any type · large files are fine</span>
+      </label>
+      <div id="upload-list" class="flex flex-col gap-3 empty:hidden"></div>
+    </div>
+    <div class="px-5 py-3.5 border-t border-border flex items-center gap-3">
+      <button id="upload-start" class="btn-primary" disabled>{{icon "upload"}}Upload</button>
+      <span class="text-[13px] text-text-muted" id="upload-summary"></span>
+    </div>
+  </div>
+{{end}}

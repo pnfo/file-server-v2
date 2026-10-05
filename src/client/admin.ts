@@ -103,7 +103,7 @@ async function pdfjs() {
 }
 async function openPdf(src: string | ArrayBuffer): Promise<PdfDoc> {
   const lib = await pdfjs()
-  // decoders/fonts copied there by astro.config.mjs; absolute, since the worker resolves relative URLs against itself
+  // decoders/fonts copied there by scripts/build-assets.mjs; absolute, since the worker resolves relative URLs against itself
   const base = `${location.origin}/fs-static/pdfjs-${lib.version}`
   return lib.getDocument({
     ...(typeof src === 'string' ? { url: src } : { data: new Uint8Array(src) }),

@@ -1,0 +1,51 @@
+{{define "adminLayout"}}<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>{{.Title}} · {{.S.ID}} admin</title>
+  <link rel="icon" href="/fs-static/favicon.ico">
+  {{adminThemeScript}}
+  <link rel="stylesheet" href="{{.Assets.AdminCSS}}">
+</head>
+<body data-base="{{.S.Base}}" class="admin">
+  {{sprite}}
+  {{if .S.IsAdmin}}
+    <header class="bg-surface border-b border-border sticky top-0 z-40">
+      <div class="max-w-[1200px] mx-auto px-4 h-14 flex items-center gap-6">
+        <a href="{{.S.Base}}/admin" class="flex items-center gap-2 font-semibold text-[15px]">
+          <span class="size-7 rounded-md bg-primary/15 text-primary grid place-items-center">{{icon "book"}}</span>
+          Tipitaka.lk
+        </a>
+        <div class="flex items-center p-0.5 rounded-lg bg-background border border-border">
+          {{range .Sites}}
+            <a href="{{.Href}}"
+              class="px-3 h-7 grid place-items-center rounded-md text-[13px] font-medium {{if .Active}}bg-surface-hover text-text shadow-sm{{else}}text-text-muted hover:text-text{{end}}">
+              {{.Label}}
+            </a>
+          {{end}}
+        </div>
+        <nav class="hidden sm:flex items-center gap-1">
+          {{range .Nav}}<a href="{{.Href}}" class="px-3 h-8 grid place-items-center rounded-md text-[13px] font-medium {{if .Active}}text-text bg-surface-hover{{else}}text-text-muted hover:text-text{{end}}">{{.Label}}</a>{{end}}
+        </nav>
+        <div class="ml-auto flex items-center gap-1">
+          <a href="{{.PublicHref}}" class="btn h-8 text-[13px]" title="Open this page on the public site">{{icon "openInNew"}}Public site</a>
+          <button type="button" data-theme-toggle class="btn-icon" title="Toggle theme">{{icon "theme"}}</button>
+          <form method="post" action="{{.S.Base}}/admin/logout"><button class="btn-icon" title="Log out">{{icon "logout"}}</button></form>
+        </div>
+      </div>
+    </header>
+  {{end}}
+  <main class="max-w-[1200px] w-full mx-auto px-4 py-6">{{template "content" .}}</main>
+  <div id="toast" role="status" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-text text-background text-sm px-4 py-2 rounded-lg shadow-lg opacity-0 pointer-events-none transition-opacity"></div>
+  <script type="module" src="{{.Assets.AdminJS}}"></script>
+</body>
+</html>{{end}}
+
+{{define "adminCrumbs"}}{{$base := .Base}}
+  <nav class="flex flex-wrap items-center gap-1 text-[13px] text-text-muted mb-1">
+    <a href="{{$base}}/admin" class="hover:text-text">All files</a>
+    {{range .Crumbs}}{{icon "chevron" "text-xs opacity-60"}}<a href="{{$base}}/admin?folder={{.ID}}" class="hover:text-text">{{.Name}}</a>{{end}}
+  </nav>
+{{end}}

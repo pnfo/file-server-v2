@@ -1,0 +1,12 @@
+{{define "content"}}
+  <form class="flex flex-wrap items-center gap-2 text-base py-2" action="{{.S.Base}}/recent" data-recent-form>
+    {{icon "calendar" "text-primary text-xl"}}
+    <label for="months">පසුගිය මාස</label>
+    <select id="months" name="m" class="bg-background border border-border rounded-lg px-2 py-1">
+      {{$m := .D.Months}}{{range .D.Options}}<option value="{{.}}"{{if eq . $m}} selected{{end}}>{{.}}</option>{{end}}
+    </select>
+    <span>තුළ අලුතෙන් එකතු කළ ගොනු පහතින්.</span>
+    <noscript><button class="text-info underline">පෙන්වන්න</button></noscript>
+  </form>
+  {{template "entryTable" .D.Table}}
+{{end}}

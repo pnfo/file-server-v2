@@ -1,0 +1,3476 @@
+{
+ "sizes": [
+  [
+   0,
+   {
+    "numeral": "0",
+    "unit": "KB"
+   }
+  ],
+  [
+   -1,
+   {
+    "numeral": "0",
+    "unit": "KB"
+   }
+  ],
+  [
+   1,
+   {
+    "numeral": "1.0",
+    "unit": "Bytes"
+   }
+  ],
+  [
+   999,
+   {
+    "numeral": "999",
+    "unit": "Bytes"
+   }
+  ],
+  [
+   1023,
+   {
+    "numeral": "1023",
+    "unit": "Bytes"
+   }
+  ],
+  [
+   1024,
+   {
+    "numeral": "1.0",
+    "unit": "KB"
+   }
+  ],
+  [
+   1025,
+   {
+    "numeral": "1.0",
+    "unit": "KB"
+   }
+  ],
+  [
+   2304,
+   {
+    "numeral": "2.3",
+    "unit": "KB"
+   }
+  ],
+  [
+   10239,
+   {
+    "numeral": "10.0",
+    "unit": "KB"
+   }
+  ],
+  [
+   10240,
+   {
+    "numeral": "10",
+    "unit": "KB"
+   }
+  ],
+  [
+   10752,
+   {
+    "numeral": "11",
+    "unit": "KB"
+   }
+  ],
+  [
+   1048575,
+   {
+    "numeral": "1024",
+    "unit": "KB"
+   }
+  ],
+  [
+   1048576,
+   {
+    "numeral": "1.0",
+    "unit": "MB"
+   }
+  ],
+  [
+   1572864,
+   {
+    "numeral": "1.5",
+    "unit": "MB"
+   }
+  ],
+  [
+   2359296,
+   {
+    "numeral": "2.3",
+    "unit": "MB"
+   }
+  ],
+  [
+   10433331.2,
+   {
+    "numeral": "9.9",
+    "unit": "MB"
+   }
+  ],
+  [
+   1073741824,
+   {
+    "numeral": "1.0",
+    "unit": "GB"
+   }
+  ],
+  [
+   1099511627776,
+   {
+    "numeral": "1.0",
+    "unit": "TB"
+   }
+  ],
+  [
+   1125899906842624,
+   {
+    "numeral": "1024",
+    "unit": "TB"
+   }
+  ],
+  [
+   4785686851,
+   {
+    "numeral": "4.5",
+    "unit": "GB"
+   }
+  ],
+  [
+   15957631183,
+   {
+    "numeral": "15",
+    "unit": "GB"
+   }
+  ],
+  [
+   101724196,
+   {
+    "numeral": "97",
+    "unit": "MB"
+   }
+  ],
+  [
+   2103110079,
+   {
+    "numeral": "2.0",
+    "unit": "GB"
+   }
+  ],
+  [
+   3729961011,
+   {
+    "numeral": "3.5",
+    "unit": "GB"
+   }
+  ],
+  [
+   11732812,
+   {
+    "numeral": "11",
+    "unit": "MB"
+   }
+  ],
+  [
+   11125712720,
+   {
+    "numeral": "10",
+    "unit": "GB"
+   }
+  ],
+  [
+   6909892871,
+   {
+    "numeral": "6.4",
+    "unit": "GB"
+   }
+  ],
+  [
+   437926576,
+   {
+    "numeral": "418",
+    "unit": "MB"
+   }
+  ],
+  [
+   5047287455,
+   {
+    "numeral": "4.7",
+    "unit": "GB"
+   }
+  ],
+  [
+   18820509677,
+   {
+    "numeral": "18",
+    "unit": "GB"
+   }
+  ],
+  [
+   8530034483,
+   {
+    "numeral": "7.9",
+    "unit": "GB"
+   }
+  ],
+  [
+   9632493296,
+   {
+    "numeral": "9.0",
+    "unit": "GB"
+   }
+  ],
+  [
+   86157550,
+   {
+    "numeral": "82",
+    "unit": "MB"
+   }
+  ],
+  [
+   18132580514,
+   {
+    "numeral": "17",
+    "unit": "GB"
+   }
+  ],
+  [
+   116721954,
+   {
+    "numeral": "111",
+    "unit": "MB"
+   }
+  ],
+  [
+   5732396606,
+   {
+    "numeral": "5.3",
+    "unit": "GB"
+   }
+  ],
+  [
+   1034843555,
+   {
+    "numeral": "987",
+    "unit": "MB"
+   }
+  ],
+  [
+   6886166039,
+   {
+    "numeral": "6.4",
+    "unit": "GB"
+   }
+  ],
+  [
+   2006249093,
+   {
+    "numeral": "1.9",
+    "unit": "GB"
+   }
+  ],
+  [
+   178333156,
+   {
+    "numeral": "170",
+    "unit": "MB"
+   }
+  ],
+  [
+   219482672,
+   {
+    "numeral": "209",
+    "unit": "MB"
+   }
+  ],
+  [
+   611462488,
+   {
+    "numeral": "583",
+    "unit": "MB"
+   }
+  ],
+  [
+   4872782047,
+   {
+    "numeral": "4.5",
+    "unit": "GB"
+   }
+  ],
+  [
+   1083677603,
+   {
+    "numeral": "1.0",
+    "unit": "GB"
+   }
+  ],
+  [
+   9507175,
+   {
+    "numeral": "9.1",
+    "unit": "MB"
+   }
+  ],
+  [
+   27857912,
+   {
+    "numeral": "27",
+    "unit": "MB"
+   }
+  ],
+  [
+   92633957,
+   {
+    "numeral": "88",
+    "unit": "MB"
+   }
+  ],
+  [
+   6088376070,
+   {
+    "numeral": "5.7",
+    "unit": "GB"
+   }
+  ],
+  [
+   12753830445,
+   {
+    "numeral": "12",
+    "unit": "GB"
+   }
+  ],
+  [
+   12983673307,
+   {
+    "numeral": "12",
+    "unit": "GB"
+   }
+  ],
+  [
+   35166252,
+   {
+    "numeral": "34",
+    "unit": "MB"
+   }
+  ],
+  [
+   18849662635,
+   {
+    "numeral": "18",
+    "unit": "GB"
+   }
+  ],
+  [
+   5156183251,
+   {
+    "numeral": "4.8",
+    "unit": "GB"
+   }
+  ],
+  [
+   1650336784,
+   {
+    "numeral": "1.5",
+    "unit": "GB"
+   }
+  ],
+  [
+   11339784284,
+   {
+    "numeral": "11",
+    "unit": "GB"
+   }
+  ],
+  [
+   1926991,
+   {
+    "numeral": "1.8",
+    "unit": "MB"
+   }
+  ],
+  [
+   977430,
+   {
+    "numeral": "955",
+    "unit": "KB"
+   }
+  ],
+  [
+   528026803,
+   {
+    "numeral": "504",
+    "unit": "MB"
+   }
+  ],
+  [
+   15323356500,
+   {
+    "numeral": "14",
+    "unit": "GB"
+   }
+  ],
+  [
+   16754187487,
+   {
+    "numeral": "16",
+    "unit": "GB"
+   }
+  ],
+  [
+   145061273,
+   {
+    "numeral": "138",
+    "unit": "MB"
+   }
+  ],
+  [
+   3837881147,
+   {
+    "numeral": "3.6",
+    "unit": "GB"
+   }
+  ],
+  [
+   6119512305,
+   {
+    "numeral": "5.7",
+    "unit": "GB"
+   }
+  ],
+  [
+   1030920527,
+   {
+    "numeral": "983",
+    "unit": "MB"
+   }
+  ],
+  [
+   817747281,
+   {
+    "numeral": "780",
+    "unit": "MB"
+   }
+  ],
+  [
+   443386002,
+   {
+    "numeral": "423",
+    "unit": "MB"
+   }
+  ],
+  [
+   40294175,
+   {
+    "numeral": "38",
+    "unit": "MB"
+   }
+  ],
+  [
+   2426655945,
+   {
+    "numeral": "2.3",
+    "unit": "GB"
+   }
+  ],
+  [
+   16894602676,
+   {
+    "numeral": "16",
+    "unit": "GB"
+   }
+  ],
+  [
+   3815095994,
+   {
+    "numeral": "3.6",
+    "unit": "GB"
+   }
+  ],
+  [
+   23711633,
+   {
+    "numeral": "23",
+    "unit": "MB"
+   }
+  ],
+  [
+   696544144,
+   {
+    "numeral": "664",
+    "unit": "MB"
+   }
+  ],
+  [
+   15195572774,
+   {
+    "numeral": "14",
+    "unit": "GB"
+   }
+  ],
+  [
+   216187,
+   {
+    "numeral": "211",
+    "unit": "KB"
+   }
+  ],
+  [
+   5455155076,
+   {
+    "numeral": "5.1",
+    "unit": "GB"
+   }
+  ],
+  [
+   2192361287,
+   {
+    "numeral": "2.0",
+    "unit": "GB"
+   }
+  ],
+  [
+   7286831,
+   {
+    "numeral": "6.9",
+    "unit": "MB"
+   }
+  ],
+  [
+   0,
+   {
+    "numeral": "0",
+    "unit": "KB"
+   }
+  ],
+  [
+   465834603,
+   {
+    "numeral": "444",
+    "unit": "MB"
+   }
+  ],
+  [
+   822281,
+   {
+    "numeral": "803",
+    "unit": "KB"
+   }
+  ],
+  [
+   6801058976,
+   {
+    "numeral": "6.3",
+    "unit": "GB"
+   }
+  ],
+  [
+   403154722,
+   {
+    "numeral": "384",
+    "unit": "MB"
+   }
+  ],
+  [
+   5124219867,
+   {
+    "numeral": "4.8",
+    "unit": "GB"
+   }
+  ],
+  [
+   409549746,
+   {
+    "numeral": "391",
+    "unit": "MB"
+   }
+  ],
+  [
+   311229018,
+   {
+    "numeral": "297",
+    "unit": "MB"
+   }
+  ],
+  [
+   2253163515,
+   {
+    "numeral": "2.1",
+    "unit": "GB"
+   }
+  ],
+  [
+   17962056026,
+   {
+    "numeral": "17",
+    "unit": "GB"
+   }
+  ],
+  [
+   15680683850,
+   {
+    "numeral": "15",
+    "unit": "GB"
+   }
+  ],
+  [
+   310238563,
+   {
+    "numeral": "296",
+    "unit": "MB"
+   }
+  ],
+  [
+   15077745025,
+   {
+    "numeral": "14",
+    "unit": "GB"
+   }
+  ],
+  [
+   7935613803,
+   {
+    "numeral": "7.4",
+    "unit": "GB"
+   }
+  ],
+  [
+   274232989,
+   {
+    "numeral": "262",
+    "unit": "MB"
+   }
+  ],
+  [
+   1056878955,
+   {
+    "numeral": "1008",
+    "unit": "MB"
+   }
+  ],
+  [
+   2804917092,
+   {
+    "numeral": "2.6",
+    "unit": "GB"
+   }
+  ],
+  [
+   6693523891,
+   {
+    "numeral": "6.2",
+    "unit": "GB"
+   }
+  ],
+  [
+   5690475965,
+   {
+    "numeral": "5.3",
+    "unit": "GB"
+   }
+  ],
+  [
+   37549145,
+   {
+    "numeral": "36",
+    "unit": "MB"
+   }
+  ],
+  [
+   5829719850,
+   {
+    "numeral": "5.4",
+    "unit": "GB"
+   }
+  ],
+  [
+   861113382,
+   {
+    "numeral": "821",
+    "unit": "MB"
+   }
+  ],
+  [
+   16984813413,
+   {
+    "numeral": "16",
+    "unit": "GB"
+   }
+  ],
+  [
+   206188744,
+   {
+    "numeral": "197",
+    "unit": "MB"
+   }
+  ],
+  [
+   13956696558,
+   {
+    "numeral": "13",
+    "unit": "GB"
+   }
+  ],
+  [
+   54679615,
+   {
+    "numeral": "52",
+    "unit": "MB"
+   }
+  ],
+  [
+   2669649532,
+   {
+    "numeral": "2.5",
+    "unit": "GB"
+   }
+  ],
+  [
+   9756164011,
+   {
+    "numeral": "9.1",
+    "unit": "GB"
+   }
+  ],
+  [
+   189393575,
+   {
+    "numeral": "181",
+    "unit": "MB"
+   }
+  ],
+  [
+   13264721,
+   {
+    "numeral": "13",
+    "unit": "MB"
+   }
+  ],
+  [
+   10529736237,
+   {
+    "numeral": "9.8",
+    "unit": "GB"
+   }
+  ],
+  [
+   3842446417,
+   {
+    "numeral": "3.6",
+    "unit": "GB"
+   }
+  ],
+  [
+   454531836,
+   {
+    "numeral": "433",
+    "unit": "MB"
+   }
+  ],
+  [
+   1806631915,
+   {
+    "numeral": "1.7",
+    "unit": "GB"
+   }
+  ],
+  [
+   2636193066,
+   {
+    "numeral": "2.5",
+    "unit": "GB"
+   }
+  ],
+  [
+   12615123801,
+   {
+    "numeral": "12",
+    "unit": "GB"
+   }
+  ],
+  [
+   985538,
+   {
+    "numeral": "962",
+    "unit": "KB"
+   }
+  ],
+  [
+   15314069,
+   {
+    "numeral": "15",
+    "unit": "MB"
+   }
+  ],
+  [
+   554985510,
+   {
+    "numeral": "529",
+    "unit": "MB"
+   }
+  ],
+  [
+   4960703963,
+   {
+    "numeral": "4.6",
+    "unit": "GB"
+   }
+  ],
+  [
+   5767375076,
+   {
+    "numeral": "5.4",
+    "unit": "GB"
+   }
+  ],
+  [
+   35650372,
+   {
+    "numeral": "34",
+    "unit": "MB"
+   }
+  ],
+  [
+   833008672,
+   {
+    "numeral": "794",
+    "unit": "MB"
+   }
+  ],
+  [
+   16937916873,
+   {
+    "numeral": "16",
+    "unit": "GB"
+   }
+  ],
+  [
+   6062484075,
+   {
+    "numeral": "5.6",
+    "unit": "GB"
+   }
+  ],
+  [
+   3496956354,
+   {
+    "numeral": "3.3",
+    "unit": "GB"
+   }
+  ],
+  [
+   4874427019,
+   {
+    "numeral": "4.5",
+    "unit": "GB"
+   }
+  ],
+  [
+   6072159004,
+   {
+    "numeral": "5.7",
+    "unit": "GB"
+   }
+  ],
+  [
+   93490276,
+   {
+    "numeral": "89",
+    "unit": "MB"
+   }
+  ],
+  [
+   3418433797,
+   {
+    "numeral": "3.2",
+    "unit": "GB"
+   }
+  ],
+  [
+   4197667684,
+   {
+    "numeral": "3.9",
+    "unit": "GB"
+   }
+  ],
+  [
+   5562166921,
+   {
+    "numeral": "5.2",
+    "unit": "GB"
+   }
+  ],
+  [
+   2411151867,
+   {
+    "numeral": "2.2",
+    "unit": "GB"
+   }
+  ],
+  [
+   14217158080,
+   {
+    "numeral": "13",
+    "unit": "GB"
+   }
+  ],
+  [
+   62969925,
+   {
+    "numeral": "60",
+    "unit": "MB"
+   }
+  ],
+  [
+   12874281197,
+   {
+    "numeral": "12",
+    "unit": "GB"
+   }
+  ],
+  [
+   4884542170,
+   {
+    "numeral": "4.5",
+    "unit": "GB"
+   }
+  ],
+  [
+   36427450,
+   {
+    "numeral": "35",
+    "unit": "MB"
+   }
+  ],
+  [
+   709818581,
+   {
+    "numeral": "677",
+    "unit": "MB"
+   }
+  ],
+  [
+   1381713100,
+   {
+    "numeral": "1.3",
+    "unit": "GB"
+   }
+  ],
+  [
+   17901516172,
+   {
+    "numeral": "17",
+    "unit": "GB"
+   }
+  ],
+  [
+   16200269507,
+   {
+    "numeral": "15",
+    "unit": "GB"
+   }
+  ],
+  [
+   1010149754,
+   {
+    "numeral": "963",
+    "unit": "MB"
+   }
+  ],
+  [
+   11794522686,
+   {
+    "numeral": "11",
+    "unit": "GB"
+   }
+  ],
+  [
+   7859239081,
+   {
+    "numeral": "7.3",
+    "unit": "GB"
+   }
+  ],
+  [
+   563313749,
+   {
+    "numeral": "537",
+    "unit": "MB"
+   }
+  ],
+  [
+   74581986,
+   {
+    "numeral": "71",
+    "unit": "MB"
+   }
+  ],
+  [
+   920326798,
+   {
+    "numeral": "878",
+    "unit": "MB"
+   }
+  ],
+  [
+   382206142,
+   {
+    "numeral": "365",
+    "unit": "MB"
+   }
+  ],
+  [
+   6343846720,
+   {
+    "numeral": "5.9",
+    "unit": "GB"
+   }
+  ],
+  [
+   8137154490,
+   {
+    "numeral": "7.6",
+    "unit": "GB"
+   }
+  ],
+  [
+   9443490149,
+   {
+    "numeral": "8.8",
+    "unit": "GB"
+   }
+  ],
+  [
+   9709062801,
+   {
+    "numeral": "9.0",
+    "unit": "GB"
+   }
+  ],
+  [
+   10205078530,
+   {
+    "numeral": "9.5",
+    "unit": "GB"
+   }
+  ],
+  [
+   4715897965,
+   {
+    "numeral": "4.4",
+    "unit": "GB"
+   }
+  ],
+  [
+   15257313,
+   {
+    "numeral": "15",
+    "unit": "MB"
+   }
+  ],
+  [
+   81543375,
+   {
+    "numeral": "78",
+    "unit": "MB"
+   }
+  ],
+  [
+   8803662460,
+   {
+    "numeral": "8.2",
+    "unit": "GB"
+   }
+  ],
+  [
+   10016127,
+   {
+    "numeral": "9.6",
+    "unit": "MB"
+   }
+  ],
+  [
+   7234359550,
+   {
+    "numeral": "6.7",
+    "unit": "GB"
+   }
+  ],
+  [
+   5194443641,
+   {
+    "numeral": "4.8",
+    "unit": "GB"
+   }
+  ],
+  [
+   17014092209,
+   {
+    "numeral": "16",
+    "unit": "GB"
+   }
+  ],
+  [
+   18819451947,
+   {
+    "numeral": "18",
+    "unit": "GB"
+   }
+  ],
+  [
+   90503010,
+   {
+    "numeral": "86",
+    "unit": "MB"
+   }
+  ],
+  [
+   3043194,
+   {
+    "numeral": "2.9",
+    "unit": "MB"
+   }
+  ],
+  [
+   249299528,
+   {
+    "numeral": "238",
+    "unit": "MB"
+   }
+  ],
+  [
+   1206458112,
+   {
+    "numeral": "1.1",
+    "unit": "GB"
+   }
+  ],
+  [
+   4300106394,
+   {
+    "numeral": "4.0",
+    "unit": "GB"
+   }
+  ],
+  [
+   7234634,
+   {
+    "numeral": "6.9",
+    "unit": "MB"
+   }
+  ],
+  [
+   853942743,
+   {
+    "numeral": "814",
+    "unit": "MB"
+   }
+  ],
+  [
+   4812947162,
+   {
+    "numeral": "4.5",
+    "unit": "GB"
+   }
+  ],
+  [
+   180157635,
+   {
+    "numeral": "172",
+    "unit": "MB"
+   }
+  ],
+  [
+   2452260285,
+   {
+    "numeral": "2.3",
+    "unit": "GB"
+   }
+  ],
+  [
+   3261829989,
+   {
+    "numeral": "3.0",
+    "unit": "GB"
+   }
+  ],
+  [
+   744828639,
+   {
+    "numeral": "710",
+    "unit": "MB"
+   }
+  ],
+  [
+   9994208506,
+   {
+    "numeral": "9.3",
+    "unit": "GB"
+   }
+  ],
+  [
+   717066,
+   {
+    "numeral": "700",
+    "unit": "KB"
+   }
+  ],
+  [
+   3765687312,
+   {
+    "numeral": "3.5",
+    "unit": "GB"
+   }
+  ],
+  [
+   17772222683,
+   {
+    "numeral": "17",
+    "unit": "GB"
+   }
+  ],
+  [
+   7049155017,
+   {
+    "numeral": "6.6",
+    "unit": "GB"
+   }
+  ],
+  [
+   14777710,
+   {
+    "numeral": "14",
+    "unit": "MB"
+   }
+  ],
+  [
+   8384841155,
+   {
+    "numeral": "7.8",
+    "unit": "GB"
+   }
+  ],
+  [
+   1628707238,
+   {
+    "numeral": "1.5",
+    "unit": "GB"
+   }
+  ],
+  [
+   10321793048,
+   {
+    "numeral": "9.6",
+    "unit": "GB"
+   }
+  ],
+  [
+   14186501538,
+   {
+    "numeral": "13",
+    "unit": "GB"
+   }
+  ],
+  [
+   761518963,
+   {
+    "numeral": "726",
+    "unit": "MB"
+   }
+  ],
+  [
+   18529418,
+   {
+    "numeral": "18",
+    "unit": "MB"
+   }
+  ],
+  [
+   16459303717,
+   {
+    "numeral": "15",
+    "unit": "GB"
+   }
+  ],
+  [
+   418512561,
+   {
+    "numeral": "399",
+    "unit": "MB"
+   }
+  ],
+  [
+   5222109286,
+   {
+    "numeral": "4.9",
+    "unit": "GB"
+   }
+  ],
+  [
+   8709392203,
+   {
+    "numeral": "8.1",
+    "unit": "GB"
+   }
+  ],
+  [
+   42430090,
+   {
+    "numeral": "40",
+    "unit": "MB"
+   }
+  ],
+  [
+   2263492125,
+   {
+    "numeral": "2.1",
+    "unit": "GB"
+   }
+  ],
+  [
+   13624377813,
+   {
+    "numeral": "13",
+    "unit": "GB"
+   }
+  ],
+  [
+   577273244,
+   {
+    "numeral": "551",
+    "unit": "MB"
+   }
+  ],
+  [
+   14866211573,
+   {
+    "numeral": "14",
+    "unit": "GB"
+   }
+  ],
+  [
+   1097772563,
+   {
+    "numeral": "1.0",
+    "unit": "GB"
+   }
+  ],
+  [
+   6932237613,
+   {
+    "numeral": "6.5",
+    "unit": "GB"
+   }
+  ],
+  [
+   3196046843,
+   {
+    "numeral": "3.0",
+    "unit": "GB"
+   }
+  ],
+  [
+   501325,
+   {
+    "numeral": "490",
+    "unit": "KB"
+   }
+  ],
+  [
+   16235941277,
+   {
+    "numeral": "15",
+    "unit": "GB"
+   }
+  ],
+  [
+   160289538,
+   {
+    "numeral": "153",
+    "unit": "MB"
+   }
+  ],
+  [
+   16088697809,
+   {
+    "numeral": "15",
+    "unit": "GB"
+   }
+  ],
+  [
+   399252891,
+   {
+    "numeral": "381",
+    "unit": "MB"
+   }
+  ],
+  [
+   15164286,
+   {
+    "numeral": "14",
+    "unit": "MB"
+   }
+  ],
+  [
+   8499644168,
+   {
+    "numeral": "7.9",
+    "unit": "GB"
+   }
+  ],
+  [
+   8929009107,
+   {
+    "numeral": "8.3",
+    "unit": "GB"
+   }
+  ],
+  [
+   14633620214,
+   {
+    "numeral": "14",
+    "unit": "GB"
+   }
+  ],
+  [
+   4927885867,
+   {
+    "numeral": "4.6",
+    "unit": "GB"
+   }
+  ],
+  [
+   10701,
+   {
+    "numeral": "10",
+    "unit": "KB"
+   }
+  ],
+  [
+   11167579235,
+   {
+    "numeral": "10",
+    "unit": "GB"
+   }
+  ],
+  [
+   15434835838,
+   {
+    "numeral": "14",
+    "unit": "GB"
+   }
+  ],
+  [
+   10859750,
+   {
+    "numeral": "10",
+    "unit": "MB"
+   }
+  ],
+  [
+   16932784206,
+   {
+    "numeral": "16",
+    "unit": "GB"
+   }
+  ],
+  [
+   1926119,
+   {
+    "numeral": "1.8",
+    "unit": "MB"
+   }
+  ],
+  [
+   114698854,
+   {
+    "numeral": "109",
+    "unit": "MB"
+   }
+  ],
+  [
+   4725329317,
+   {
+    "numeral": "4.4",
+    "unit": "GB"
+   }
+  ],
+  [
+   16633028491,
+   {
+    "numeral": "15",
+    "unit": "GB"
+   }
+  ],
+  [
+   9261281773,
+   {
+    "numeral": "8.6",
+    "unit": "GB"
+   }
+  ],
+  [
+   18430013149,
+   {
+    "numeral": "17",
+    "unit": "GB"
+   }
+  ],
+  [
+   4098656235,
+   {
+    "numeral": "3.8",
+    "unit": "GB"
+   }
+  ],
+  [
+   79150071,
+   {
+    "numeral": "75",
+    "unit": "MB"
+   }
+  ],
+  [
+   26324,
+   {
+    "numeral": "26",
+    "unit": "KB"
+   }
+  ],
+  [
+   232847060,
+   {
+    "numeral": "222",
+    "unit": "MB"
+   }
+  ],
+  [
+   20332665,
+   {
+    "numeral": "19",
+    "unit": "MB"
+   }
+  ],
+  [
+   5088174,
+   {
+    "numeral": "4.9",
+    "unit": "MB"
+   }
+  ],
+  [
+   254674982,
+   {
+    "numeral": "243",
+    "unit": "MB"
+   }
+  ],
+  [
+   38511791,
+   {
+    "numeral": "37",
+    "unit": "MB"
+   }
+  ],
+  [
+   153679737,
+   {
+    "numeral": "147",
+    "unit": "MB"
+   }
+  ],
+  [
+   16485204066,
+   {
+    "numeral": "15",
+    "unit": "GB"
+   }
+  ],
+  [
+   6795966562,
+   {
+    "numeral": "6.3",
+    "unit": "GB"
+   }
+  ],
+  [
+   43054772,
+   {
+    "numeral": "41",
+    "unit": "MB"
+   }
+  ],
+  [
+   11534420682,
+   {
+    "numeral": "11",
+    "unit": "GB"
+   }
+  ],
+  [
+   16350011775,
+   {
+    "numeral": "15",
+    "unit": "GB"
+   }
+  ],
+  [
+   299565336,
+   {
+    "numeral": "286",
+    "unit": "MB"
+   }
+  ],
+  [
+   6393051,
+   {
+    "numeral": "6.1",
+    "unit": "MB"
+   }
+  ],
+  [
+   26419577,
+   {
+    "numeral": "25",
+    "unit": "MB"
+   }
+  ],
+  [
+   219092334,
+   {
+    "numeral": "209",
+    "unit": "MB"
+   }
+  ],
+  [
+   7133899203,
+   {
+    "numeral": "6.6",
+    "unit": "GB"
+   }
+  ],
+  [
+   17103477229,
+   {
+    "numeral": "16",
+    "unit": "GB"
+   }
+  ],
+  [
+   5207134,
+   {
+    "numeral": "5.0",
+    "unit": "MB"
+   }
+  ],
+  [
+   2517004722,
+   {
+    "numeral": "2.3",
+    "unit": "GB"
+   }
+  ],
+  [
+   12091416356,
+   {
+    "numeral": "11",
+    "unit": "GB"
+   }
+  ],
+  [
+   330597898,
+   {
+    "numeral": "315",
+    "unit": "MB"
+   }
+  ],
+  [
+   809782,
+   {
+    "numeral": "791",
+    "unit": "KB"
+   }
+  ],
+  [
+   549698540,
+   {
+    "numeral": "524",
+    "unit": "MB"
+   }
+  ],
+  [
+   81792024,
+   {
+    "numeral": "78",
+    "unit": "MB"
+   }
+  ],
+  [
+   1563920993,
+   {
+    "numeral": "1.5",
+    "unit": "GB"
+   }
+  ],
+  [
+   6592781451,
+   {
+    "numeral": "6.1",
+    "unit": "GB"
+   }
+  ],
+  [
+   506407408,
+   {
+    "numeral": "483",
+    "unit": "MB"
+   }
+  ],
+  [
+   44048633,
+   {
+    "numeral": "42",
+    "unit": "MB"
+   }
+  ],
+  [
+   11478230263,
+   {
+    "numeral": "11",
+    "unit": "GB"
+   }
+  ],
+  [
+   14300794700,
+   {
+    "numeral": "13",
+    "unit": "GB"
+   }
+  ],
+  [
+   378505,
+   {
+    "numeral": "370",
+    "unit": "KB"
+   }
+  ],
+  [
+   12043210771,
+   {
+    "numeral": "11",
+    "unit": "GB"
+   }
+  ],
+  [
+   2310623069,
+   {
+    "numeral": "2.2",
+    "unit": "GB"
+   }
+  ],
+  [
+   474797,
+   {
+    "numeral": "464",
+    "unit": "KB"
+   }
+  ],
+  [
+   181638793,
+   {
+    "numeral": "173",
+    "unit": "MB"
+   }
+  ],
+  [
+   454746499,
+   {
+    "numeral": "434",
+    "unit": "MB"
+   }
+  ],
+  [
+   13401131959,
+   {
+    "numeral": "12",
+    "unit": "GB"
+   }
+  ],
+  [
+   4653103804,
+   {
+    "numeral": "4.3",
+    "unit": "GB"
+   }
+  ],
+  [
+   297018370,
+   {
+    "numeral": "283",
+    "unit": "MB"
+   }
+  ],
+  [
+   120446,
+   {
+    "numeral": "118",
+    "unit": "KB"
+   }
+  ],
+  [
+   771314773,
+   {
+    "numeral": "736",
+    "unit": "MB"
+   }
+  ],
+  [
+   11928,
+   {
+    "numeral": "12",
+    "unit": "KB"
+   }
+  ],
+  [
+   16494711399,
+   {
+    "numeral": "15",
+    "unit": "GB"
+   }
+  ],
+  [
+   144567634,
+   {
+    "numeral": "138",
+    "unit": "MB"
+   }
+  ],
+  [
+   7650892490,
+   {
+    "numeral": "7.1",
+    "unit": "GB"
+   }
+  ],
+  [
+   101782169,
+   {
+    "numeral": "97",
+    "unit": "MB"
+   }
+  ],
+  [
+   18340206679,
+   {
+    "numeral": "17",
+    "unit": "GB"
+   }
+  ],
+  [
+   5335212326,
+   {
+    "numeral": "5.0",
+    "unit": "GB"
+   }
+  ],
+  [
+   275689771,
+   {
+    "numeral": "263",
+    "unit": "MB"
+   }
+  ],
+  [
+   7738420888,
+   {
+    "numeral": "7.2",
+    "unit": "GB"
+   }
+  ],
+  [
+   16951211892,
+   {
+    "numeral": "16",
+    "unit": "GB"
+   }
+  ],
+  [
+   17303614887,
+   {
+    "numeral": "16",
+    "unit": "GB"
+   }
+  ],
+  [
+   9464028032,
+   {
+    "numeral": "8.8",
+    "unit": "GB"
+   }
+  ],
+  [
+   15769081327,
+   {
+    "numeral": "15",
+    "unit": "GB"
+   }
+  ],
+  [
+   845324,
+   {
+    "numeral": "826",
+    "unit": "KB"
+   }
+  ],
+  [
+   17837389424,
+   {
+    "numeral": "17",
+    "unit": "GB"
+   }
+  ],
+  [
+   55760984,
+   {
+    "numeral": "53",
+    "unit": "MB"
+   }
+  ],
+  [
+   19443791939,
+   {
+    "numeral": "18",
+    "unit": "GB"
+   }
+  ],
+  [
+   2775833294,
+   {
+    "numeral": "2.6",
+    "unit": "GB"
+   }
+  ],
+  [
+   17347937332,
+   {
+    "numeral": "16",
+    "unit": "GB"
+   }
+  ],
+  [
+   277308954,
+   {
+    "numeral": "264",
+    "unit": "MB"
+   }
+  ],
+  [
+   882438955,
+   {
+    "numeral": "842",
+    "unit": "MB"
+   }
+  ],
+  [
+   1026686311,
+   {
+    "numeral": "979",
+    "unit": "MB"
+   }
+  ],
+  [
+   2155696920,
+   {
+    "numeral": "2.0",
+    "unit": "GB"
+   }
+  ],
+  [
+   268275430,
+   {
+    "numeral": "256",
+    "unit": "MB"
+   }
+  ],
+  [
+   9890284269,
+   {
+    "numeral": "9.2",
+    "unit": "GB"
+   }
+  ],
+  [
+   82799235,
+   {
+    "numeral": "79",
+    "unit": "MB"
+   }
+  ],
+  [
+   4659812275,
+   {
+    "numeral": "4.3",
+    "unit": "GB"
+   }
+  ],
+  [
+   213328288,
+   {
+    "numeral": "203",
+    "unit": "MB"
+   }
+  ],
+  [
+   814876500,
+   {
+    "numeral": "777",
+    "unit": "MB"
+   }
+  ],
+  [
+   825237768,
+   {
+    "numeral": "787",
+    "unit": "MB"
+   }
+  ],
+  [
+   147675394,
+   {
+    "numeral": "141",
+    "unit": "MB"
+   }
+  ],
+  [
+   452630518,
+   {
+    "numeral": "432",
+    "unit": "MB"
+   }
+  ],
+  [
+   12880311758,
+   {
+    "numeral": "12",
+    "unit": "GB"
+   }
+  ],
+  [
+   17710065654,
+   {
+    "numeral": "16",
+    "unit": "GB"
+   }
+  ],
+  [
+   1741790940,
+   {
+    "numeral": "1.6",
+    "unit": "GB"
+   }
+  ],
+  [
+   1339610094,
+   {
+    "numeral": "1.2",
+    "unit": "GB"
+   }
+  ],
+  [
+   77800447,
+   {
+    "numeral": "74",
+    "unit": "MB"
+   }
+  ],
+  [
+   10645021974,
+   {
+    "numeral": "9.9",
+    "unit": "GB"
+   }
+  ],
+  [
+   7427736433,
+   {
+    "numeral": "6.9",
+    "unit": "GB"
+   }
+  ],
+  [
+   2963281276,
+   {
+    "numeral": "2.8",
+    "unit": "GB"
+   }
+  ],
+  [
+   9727908,
+   {
+    "numeral": "9.3",
+    "unit": "MB"
+   }
+  ],
+  [
+   11560944082,
+   {
+    "numeral": "11",
+    "unit": "GB"
+   }
+  ],
+  [
+   1505741683,
+   {
+    "numeral": "1.4",
+    "unit": "GB"
+   }
+  ],
+  [
+   19856,
+   {
+    "numeral": "19",
+    "unit": "KB"
+   }
+  ],
+  [
+   2863131354,
+   {
+    "numeral": "2.7",
+    "unit": "GB"
+   }
+  ],
+  [
+   606730083,
+   {
+    "numeral": "579",
+    "unit": "MB"
+   }
+  ],
+  [
+   4614824357,
+   {
+    "numeral": "4.3",
+    "unit": "GB"
+   }
+  ],
+  [
+   9328025424,
+   {
+    "numeral": "8.7",
+    "unit": "GB"
+   }
+  ],
+  [
+   8236507388,
+   {
+    "numeral": "7.7",
+    "unit": "GB"
+   }
+  ],
+  [
+   60240505,
+   {
+    "numeral": "57",
+    "unit": "MB"
+   }
+  ],
+  [
+   166379394,
+   {
+    "numeral": "159",
+    "unit": "MB"
+   }
+  ],
+  [
+   335295405,
+   {
+    "numeral": "320",
+    "unit": "MB"
+   }
+  ],
+  [
+   4091148777,
+   {
+    "numeral": "3.8",
+    "unit": "GB"
+   }
+  ],
+  [
+   1681856,
+   {
+    "numeral": "1.6",
+    "unit": "MB"
+   }
+  ],
+  [
+   15191114018,
+   {
+    "numeral": "14",
+    "unit": "GB"
+   }
+  ],
+  [
+   2612995826,
+   {
+    "numeral": "2.4",
+    "unit": "GB"
+   }
+  ],
+  [
+   4238649538,
+   {
+    "numeral": "3.9",
+    "unit": "GB"
+   }
+  ],
+  [
+   13236729295,
+   {
+    "numeral": "12",
+    "unit": "GB"
+   }
+  ],
+  [
+   32241840,
+   {
+    "numeral": "31",
+    "unit": "MB"
+   }
+  ],
+  [
+   30677,
+   {
+    "numeral": "30",
+    "unit": "KB"
+   }
+  ],
+  [
+   8667333592,
+   {
+    "numeral": "8.1",
+    "unit": "GB"
+   }
+  ],
+  [
+   6654408963,
+   {
+    "numeral": "6.2",
+    "unit": "GB"
+   }
+  ],
+  [
+   38330077,
+   {
+    "numeral": "37",
+    "unit": "MB"
+   }
+  ],
+  [
+   160334299,
+   {
+    "numeral": "153",
+    "unit": "MB"
+   }
+  ],
+  [
+   2548490698,
+   {
+    "numeral": "2.4",
+    "unit": "GB"
+   }
+  ],
+  [
+   8830350025,
+   {
+    "numeral": "8.2",
+    "unit": "GB"
+   }
+  ],
+  [
+   6615569872,
+   {
+    "numeral": "6.2",
+    "unit": "GB"
+   }
+  ],
+  [
+   967523736,
+   {
+    "numeral": "923",
+    "unit": "MB"
+   }
+  ],
+  [
+   14843,
+   {
+    "numeral": "14",
+    "unit": "KB"
+   }
+  ],
+  [
+   16207854613,
+   {
+    "numeral": "15",
+    "unit": "GB"
+   }
+  ],
+  [
+   325628484,
+   {
+    "numeral": "311",
+    "unit": "MB"
+   }
+  ],
+  [
+   913535573,
+   {
+    "numeral": "871",
+    "unit": "MB"
+   }
+  ],
+  [
+   167105414,
+   {
+    "numeral": "159",
+    "unit": "MB"
+   }
+  ],
+  [
+   2687698986,
+   {
+    "numeral": "2.5",
+    "unit": "GB"
+   }
+  ],
+  [
+   7916503830,
+   {
+    "numeral": "7.4",
+    "unit": "GB"
+   }
+  ],
+  [
+   361365345,
+   {
+    "numeral": "345",
+    "unit": "MB"
+   }
+  ],
+  [
+   5890252974,
+   {
+    "numeral": "5.5",
+    "unit": "GB"
+   }
+  ],
+  [
+   110443999,
+   {
+    "numeral": "105",
+    "unit": "MB"
+   }
+  ],
+  [
+   16419524976,
+   {
+    "numeral": "15",
+    "unit": "GB"
+   }
+  ],
+  [
+   40673,
+   {
+    "numeral": "40",
+    "unit": "KB"
+   }
+  ],
+  [
+   282845776,
+   {
+    "numeral": "270",
+    "unit": "MB"
+   }
+  ],
+  [
+   3931724825,
+   {
+    "numeral": "3.7",
+    "unit": "GB"
+   }
+  ],
+  [
+   89787924,
+   {
+    "numeral": "86",
+    "unit": "MB"
+   }
+  ],
+  [
+   3047137992,
+   {
+    "numeral": "2.8",
+    "unit": "GB"
+   }
+  ],
+  [
+   7349654911,
+   {
+    "numeral": "6.8",
+    "unit": "GB"
+   }
+  ],
+  [
+   1204832005,
+   {
+    "numeral": "1.1",
+    "unit": "GB"
+   }
+  ],
+  [
+   33265767,
+   {
+    "numeral": "32",
+    "unit": "MB"
+   }
+  ],
+  [
+   6090031817,
+   {
+    "numeral": "5.7",
+    "unit": "GB"
+   }
+  ],
+  [
+   604540489,
+   {
+    "numeral": "577",
+    "unit": "MB"
+   }
+  ],
+  [
+   13112568624,
+   {
+    "numeral": "12",
+    "unit": "GB"
+   }
+  ],
+  [
+   16766737548,
+   {
+    "numeral": "16",
+    "unit": "GB"
+   }
+  ],
+  [
+   1814291854,
+   {
+    "numeral": "1.7",
+    "unit": "GB"
+   }
+  ],
+  [
+   220225175,
+   {
+    "numeral": "210",
+    "unit": "MB"
+   }
+  ],
+  [
+   14049000551,
+   {
+    "numeral": "13",
+    "unit": "GB"
+   }
+  ],
+  [
+   69653,
+   {
+    "numeral": "68",
+    "unit": "KB"
+   }
+  ],
+  [
+   34914303,
+   {
+    "numeral": "33",
+    "unit": "MB"
+   }
+  ],
+  [
+   720923543,
+   {
+    "numeral": "688",
+    "unit": "MB"
+   }
+  ],
+  [
+   4381255463,
+   {
+    "numeral": "4.1",
+    "unit": "GB"
+   }
+  ],
+  [
+   27775721,
+   {
+    "numeral": "26",
+    "unit": "MB"
+   }
+  ],
+  [
+   12454177123,
+   {
+    "numeral": "12",
+    "unit": "GB"
+   }
+  ],
+  [
+   22626548,
+   {
+    "numeral": "22",
+    "unit": "MB"
+   }
+  ],
+  [
+   55125154,
+   {
+    "numeral": "53",
+    "unit": "MB"
+   }
+  ],
+  [
+   1524239090,
+   {
+    "numeral": "1.4",
+    "unit": "GB"
+   }
+  ],
+  [
+   18036485450,
+   {
+    "numeral": "17",
+    "unit": "GB"
+   }
+  ],
+  [
+   115655687,
+   {
+    "numeral": "110",
+    "unit": "MB"
+   }
+  ],
+  [
+   13833100449,
+   {
+    "numeral": "13",
+    "unit": "GB"
+   }
+  ],
+  [
+   578795609,
+   {
+    "numeral": "552",
+    "unit": "MB"
+   }
+  ],
+  [
+   321417356,
+   {
+    "numeral": "307",
+    "unit": "MB"
+   }
+  ],
+  [
+   801189702,
+   {
+    "numeral": "764",
+    "unit": "MB"
+   }
+  ],
+  [
+   8396083565,
+   {
+    "numeral": "7.8",
+    "unit": "GB"
+   }
+  ],
+  [
+   290161382,
+   {
+    "numeral": "277",
+    "unit": "MB"
+   }
+  ],
+  [
+   5955410378,
+   {
+    "numeral": "5.5",
+    "unit": "GB"
+   }
+  ],
+  [
+   1057293733,
+   {
+    "numeral": "1008",
+    "unit": "MB"
+   }
+  ],
+  [
+   16128819034,
+   {
+    "numeral": "15",
+    "unit": "GB"
+   }
+  ],
+  [
+   5315966656,
+   {
+    "numeral": "5.0",
+    "unit": "GB"
+   }
+  ],
+  [
+   1775893127,
+   {
+    "numeral": "1.7",
+    "unit": "GB"
+   }
+  ],
+  [
+   378094106,
+   {
+    "numeral": "361",
+    "unit": "MB"
+   }
+  ],
+  [
+   19273530475,
+   {
+    "numeral": "18",
+    "unit": "GB"
+   }
+  ],
+  [
+   3880498761,
+   {
+    "numeral": "3.6",
+    "unit": "GB"
+   }
+  ],
+  [
+   16151305732,
+   {
+    "numeral": "15",
+    "unit": "GB"
+   }
+  ],
+  [
+   11825302390,
+   {
+    "numeral": "11",
+    "unit": "GB"
+   }
+  ],
+  [
+   17652857704,
+   {
+    "numeral": "16",
+    "unit": "GB"
+   }
+  ],
+  [
+   62299336,
+   {
+    "numeral": "59",
+    "unit": "MB"
+   }
+  ],
+  [
+   6288471,
+   {
+    "numeral": "6.0",
+    "unit": "MB"
+   }
+  ],
+  [
+   3291921089,
+   {
+    "numeral": "3.1",
+    "unit": "GB"
+   }
+  ],
+  [
+   712918114,
+   {
+    "numeral": "680",
+    "unit": "MB"
+   }
+  ],
+  [
+   1719378915,
+   {
+    "numeral": "1.6",
+    "unit": "GB"
+   }
+  ],
+  [
+   9299410085,
+   {
+    "numeral": "8.7",
+    "unit": "GB"
+   }
+  ],
+  [
+   91411255,
+   {
+    "numeral": "87",
+    "unit": "MB"
+   }
+  ],
+  [
+   18188207907,
+   {
+    "numeral": "17",
+    "unit": "GB"
+   }
+  ],
+  [
+   10702235940,
+   {
+    "numeral": "10.0",
+    "unit": "GB"
+   }
+  ],
+  [
+   11696645738,
+   {
+    "numeral": "11",
+    "unit": "GB"
+   }
+  ],
+  [
+   12670372224,
+   {
+    "numeral": "12",
+    "unit": "GB"
+   }
+  ],
+  [
+   196019618,
+   {
+    "numeral": "187",
+    "unit": "MB"
+   }
+  ],
+  [
+   32822163,
+   {
+    "numeral": "31",
+    "unit": "MB"
+   }
+  ],
+  [
+   14926719269,
+   {
+    "numeral": "14",
+    "unit": "GB"
+   }
+  ],
+  [
+   13283428911,
+   {
+    "numeral": "12",
+    "unit": "GB"
+   }
+  ],
+  [
+   6420054501,
+   {
+    "numeral": "6.0",
+    "unit": "GB"
+   }
+  ],
+  [
+   1254019793,
+   {
+    "numeral": "1.2",
+    "unit": "GB"
+   }
+  ],
+  [
+   5033250,
+   {
+    "numeral": "4.8",
+    "unit": "MB"
+   }
+  ],
+  [
+   1407781669,
+   {
+    "numeral": "1.3",
+    "unit": "GB"
+   }
+  ],
+  [
+   7222175796,
+   {
+    "numeral": "6.7",
+    "unit": "GB"
+   }
+  ],
+  [
+   12579863305,
+   {
+    "numeral": "12",
+    "unit": "GB"
+   }
+  ],
+  [
+   19713481620,
+   {
+    "numeral": "18",
+    "unit": "GB"
+   }
+  ],
+  [
+   1270899339,
+   {
+    "numeral": "1.2",
+    "unit": "GB"
+   }
+  ],
+  [
+   2103286563,
+   {
+    "numeral": "2.0",
+    "unit": "GB"
+   }
+  ],
+  [
+   5563971210,
+   {
+    "numeral": "5.2",
+    "unit": "GB"
+   }
+  ],
+  [
+   5772877712,
+   {
+    "numeral": "5.4",
+    "unit": "GB"
+   }
+  ],
+  [
+   16196776807,
+   {
+    "numeral": "15",
+    "unit": "GB"
+   }
+  ],
+  [
+   6311536550,
+   {
+    "numeral": "5.9",
+    "unit": "GB"
+   }
+  ],
+  [
+   15025307256,
+   {
+    "numeral": "14",
+    "unit": "GB"
+   }
+  ],
+  [
+   5957346584,
+   {
+    "numeral": "5.5",
+    "unit": "GB"
+   }
+  ],
+  [
+   9535136722,
+   {
+    "numeral": "8.9",
+    "unit": "GB"
+   }
+  ],
+  [
+   331527,
+   {
+    "numeral": "324",
+    "unit": "KB"
+   }
+  ],
+  [
+   15172948398,
+   {
+    "numeral": "14",
+    "unit": "GB"
+   }
+  ],
+  [
+   511259,
+   {
+    "numeral": "499",
+    "unit": "KB"
+   }
+  ],
+  [
+   10401913866,
+   {
+    "numeral": "9.7",
+    "unit": "GB"
+   }
+  ],
+  [
+   7261196738,
+   {
+    "numeral": "6.8",
+    "unit": "GB"
+   }
+  ],
+  [
+   1819776062,
+   {
+    "numeral": "1.7",
+    "unit": "GB"
+   }
+  ],
+  [
+   63078156,
+   {
+    "numeral": "60",
+    "unit": "MB"
+   }
+  ]
+ ],
+ "numbers": [
+  [
+   0,
+   "0"
+  ],
+  [
+   7,
+   "7"
+  ],
+  [
+   999,
+   "999"
+  ],
+  [
+   1000,
+   "1,000"
+  ],
+  [
+   12345,
+   "12,345"
+  ],
+  [
+   1234567,
+   "1,234,567"
+  ],
+  [
+   1000000000,
+   "1,000,000,000"
+  ]
+ ],
+ "fontClass": [
+  [
+   "පොත",
+   ""
+  ],
+  [
+   "PDF ගොනුව",
+   "si"
+  ],
+  [
+   "abc",
+   ""
+  ],
+  [
+   "",
+   ""
+  ],
+  [
+   "අ1",
+   "si"
+  ],
+  [
+   "x.x",
+   ""
+  ]
+ ],
+ "types": [
+  [
+   "pdf",
+   "pdf",
+   "text-rose-400"
+  ],
+  [
+   "PDF",
+   "pdf",
+   "text-rose-400"
+  ],
+  [
+   "html",
+   "html",
+   "text-blue-400"
+  ],
+  [
+   "htm",
+   "html",
+   "text-blue-400"
+  ],
+  [
+   "folder",
+   "folder",
+   "text-amber-500"
+  ],
+  [
+   "coll",
+   "folder",
+   "text-amber-500"
+  ],
+  [
+   "jpeg",
+   "image",
+   "text-amber-400"
+  ],
+  [
+   "jpg",
+   "image",
+   "text-amber-400"
+  ],
+  [
+   "png",
+   "image",
+   "text-amber-400"
+  ],
+  [
+   "mp3",
+   "audio",
+   "text-emerald-400"
+  ],
+  [
+   "m4a",
+   "audio",
+   "text-purple-400"
+  ],
+  [
+   "xyz",
+   "file",
+   "text-amber-400"
+  ],
+  [
+   "",
+   "file",
+   "text-amber-400"
+  ],
+  [
+   "docx",
+   "word",
+   "text-sky-400"
+  ],
+  [
+   "xlsx",
+   "excel",
+   "text-emerald-500"
+  ],
+  [
+   "apk",
+   "android",
+   "text-emerald-400"
+  ],
+  [
+   "zip",
+   "zip",
+   "text-purple-400"
+  ],
+  [
+   "txt",
+   "text",
+   "text-amber-400"
+  ]
+ ],
+ "sanitize": [
+  [
+   "<p onclick=\"x\">a <b>b</b><script>alert(1)</script></p>",
+   "<p>a <b>b</b></p>"
+  ],
+  [
+   "<a href=\"javascript:alert(1)\">x</a>",
+   "<a>x</a>"
+  ],
+  [
+   "<a href=\"https://x.lk/a\">x</a>",
+   "<a href=\"https://x.lk/a\" rel=\"nofollow noopener\">x</a>"
+  ],
+  [
+   "<a href='http://y.lk/\"q'>y</a>",
+   "<a href=\"http://y.lk/&quot;q\" rel=\"nofollow noopener\">y</a>"
+  ],
+  [
+   "<p><br></p>",
+   null
+  ],
+  [
+   "",
+   null
+  ],
+  [
+   "   ",
+   null
+  ],
+  [
+   "<STYLE>p{}</style ><P>ok</P>",
+   "<p>ok</p>"
+  ],
+  [
+   "<!-- c --><ul><li>1</li></ul><div>d</div>",
+   "<ul><li>1</li></ul>d"
+  ],
+  [
+   "<svg><script>x</script></svg>t",
+   "t"
+  ],
+  [
+   "<scripts>a</script>b",
+   "b"
+  ],
+  [
+   "<h3 class=\"x\">h</h3><img src=x>",
+   "<h3>h</h3>"
+  ],
+  [
+   "<a HREF = \"https://x.lk\" target=_blank>z</a>",
+   "<a href=\"https://x.lk\" rel=\"nofollow noopener\">z</a>"
+  ],
+  [
+   "plain text",
+   "plain text"
+  ],
+  [
+   "<script>unclosed",
+   "unclosed"
+  ],
+  [
+   "<p>අ<strong>ආ</strong></p>",
+   "<p>අ<strong>ආ</strong></p>"
+  ]
+ ],
+ "parse": [
+  [
+   "නාමමාලා - වස්කඩුවේ සුභූති හිමි[1965]{200}.pdf",
+   {
+    "name": "නාමමාලා - වස්කඩුවේ සුභූති හිමි",
+    "version": "1965",
+    "id": 200,
+    "type": "pdf"
+   }
+  ],
+  [
+   "අභිධර්ම{1}",
+   {
+    "name": "අභිධර්ම",
+    "version": null,
+    "id": 1,
+    "type": null
+   }
+  ],
+  [
+   "-dev",
+   {
+    "name": "-dev",
+    "version": null,
+    "id": 0,
+    "type": null
+   }
+  ],
+  [
+   "x[v]{2}.PDF",
+   {
+    "name": "x",
+    "version": "v",
+    "id": 2,
+    "type": "pdf"
+   }
+  ],
+  [
+   "a.b.c{3}.mp3",
+   {
+    "name": "a.b.c",
+    "version": null,
+    "id": 3,
+    "type": "mp3"
+   }
+  ],
+  [
+   "noid.pdf",
+   {
+    "name": "noid",
+    "version": null,
+    "id": 0,
+    "type": "pdf"
+   }
+  ],
+  [
+   " spaced [ v ] {4}.txt",
+   {
+    "name": "spaced [ v ]",
+    "version": null,
+    "id": 4,
+    "type": "txt"
+   }
+  ],
+  [
+   "br[ack[et]]{5}.zip",
+   {
+    "name": "br",
+    "version": "ack[et]",
+    "id": 5,
+    "type": "zip"
+   }
+  ],
+  [
+   "{6}.pdf",
+   {
+    "name": "{6}",
+    "version": null,
+    "id": 0,
+    "type": "pdf"
+   }
+  ],
+  [
+   "x{7}",
+   {
+    "name": "x",
+    "version": null,
+    "id": 7,
+    "type": null
+   }
+  ],
+  [
+   "name[]{8}.pdf",
+   {
+    "name": "name",
+    "version": null,
+    "id": 8,
+    "type": "pdf"
+   }
+  ],
+  [
+   "අ{12a}.pdf",
+   {
+    "name": "අ{12a}",
+    "version": null,
+    "id": 0,
+    "type": "pdf"
+   }
+  ]
+ ],
+ "build": [
+  [
+   [
+    "a/b",
+    "x]y",
+    5,
+    "pdf"
+   ],
+   "a b[x y]{5}.pdf"
+  ],
+  [
+   [
+    "  n  ",
+    null,
+    6,
+    "mp3"
+   ],
+   "n{6}.mp3"
+  ],
+  [
+   [
+    "{x}",
+    "[y]",
+    7,
+    "zip"
+   ],
+   "x[y]{7}.zip"
+  ]
+ ],
+ "saveAs": [
+  [
+   {
+    "name": "පොත",
+    "version": "1965",
+    "type": "pdf"
+   },
+   "පොත - 1965.pdf"
+  ],
+  [
+   {
+    "name": "a/b{1}",
+    "version": null,
+    "type": "mp3"
+   },
+   "a b 1.mp3"
+  ]
+ ],
+ "encode": [
+  [
+   "a b!'()*~_.-",
+   "a%20b%21%27%28%29%2A~_.-"
+  ],
+  [
+   "අ/ü",
+   "%E0%B6%85%2F%C3%BC"
+  ],
+  [
+   "x+y=z&?#",
+   "x%2By%3Dz%26%3F%23"
+  ]
+ ],
+ "sign": [
+  {
+   "objectKey": "library/අ{1}/x[v]{2}.pdf",
+   "fileName": "x - v.pdf",
+   "mode": "inline",
+   "out": {
+    "url": "https://tipitaka.sgp1.cdn.digitaloceanspaces.com/library/%E0%B6%85%7B1%7D/x%5Bv%5D%7B2%7D.pdf?AWSAccessKeyId=AK%2F%2B%3D&Expires=1790877600&Signature=S00CQj8IaOONAsKz3Ayl4DWffHQ%3D&response-content-disposition=inline%3B%20filename%3D%22file.pdf%22%3B%20filename%2A%3DUTF-8%27%27x%2520-%2520v.pdf",
+    "expires": 1790877600
+   }
+  },
+  {
+   "objectKey": "cloud/a b/c(1)!*.mp3",
+   "fileName": "c (1)!'.mp3",
+   "mode": "attachment",
+   "out": {
+    "url": "https://tipitaka.sgp1.cdn.digitaloceanspaces.com/cloud/a%20b/c%281%29%21%2A.mp3?AWSAccessKeyId=AK%2F%2B%3D&Expires=1790877600&Signature=1qkWaYtxZWVl8nms7JGE1ceVvjo%3D&response-content-disposition=attachment%3B%20filename%3D%22file.mp3%22%3B%20filename%2A%3DUTF-8%27%27c%2520%25281%2529%2521%2527.mp3",
+    "expires": 1790877600
+   }
+  },
+  {
+   "objectKey": "cloud/x{3}.m4a",
+   "fileName": "x.m4a",
+   "mode": "stream",
+   "out": {
+    "url": "https://tipitaka.sgp1.cdn.digitaloceanspaces.com/cloud/x%7B3%7D.m4a?AWSAccessKeyId=AK%2F%2B%3D&Expires=1790877600&Signature=vAU%2FUWRS11pI6nccaRmMyyRjXFk%3D",
+    "expires": 1790877600
+   }
+  },
+  {
+   "objectKey": "library/noext{4}",
+   "fileName": "noext",
+   "mode": "inline",
+   "baseUrl": "https://tipitaka.lk/fs-dl",
+   "out": {
+    "url": "https://tipitaka.lk/fs-dl/library/noext%7B4%7D?AWSAccessKeyId=AK%2F%2B%3D&Expires=1790877600&Signature=VQQiyn7L5B2kYY7zN5cz%2FOUuXl8%3D&response-content-disposition=inline%3B%20filename%3D%22file%22%3B%20filename%2A%3DUTF-8%27%27noext",
+    "expires": 1790877600
+   }
+  },
+  {
+   "objectKey": "library/ü{5}.pdf",
+   "fileName": "පොත - ü.pdf",
+   "mode": "attachment",
+   "out": {
+    "url": "https://tipitaka.sgp1.cdn.digitaloceanspaces.com/library/%C3%BC%7B5%7D.pdf?AWSAccessKeyId=AK%2F%2B%3D&Expires=1790877600&Signature=ZfGd%2Fxiw7Gy9p35F3rgRmER2gaw%3D&response-content-disposition=attachment%3B%20filename%3D%22file.pdf%22%3B%20filename%2A%3DUTF-8%27%27%25E0%25B6%25B4%25E0%25B7%259C%25E0%25B6%25AD%2520-%2520%25C3%25BC.pdf",
+    "expires": 1790877600
+   }
+  }
+ ],
+ "ua": [
+  [
+   "Mozilla/5.0 (Linux; Android 14; SM-A146P Build/UP1A; wv) AppleWebKit/537.36 Chrome/128.0 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/480.0.0.48.86;]",
+   {
+    "inApp": true,
+    "appName": "Facebook",
+    "os": "android"
+   }
+  ],
+  [
+   "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Instagram 350.0",
+   {
+    "inApp": true,
+    "appName": "Instagram",
+    "os": "ios"
+   }
+  ],
+  [
+   "Mozilla/5.0 (Linux; Android 14) Chrome/128.0 Mobile Safari/537.36",
+   {
+    "inApp": false,
+    "appName": null,
+    "os": "android"
+   }
+  ],
+  [
+   "Mozilla/5.0 (iPad) [FBAN/MessengerForiOS]",
+   {
+    "inApp": true,
+    "appName": "Facebook",
+    "os": "ios"
+   }
+  ],
+  [
+   "Line/13.1 iPhone",
+   {
+    "inApp": true,
+    "appName": "LINE",
+    "os": "ios"
+   }
+  ],
+  [
+   "MicroMessenger/8 Android",
+   {
+    "inApp": true,
+    "appName": "WeChat",
+    "os": "android"
+   }
+  ],
+  [
+   "Snapchat/12",
+   {
+    "inApp": true,
+    "appName": "Snapchat",
+    "os": "other"
+   }
+  ],
+  [
+   "musical_ly_2022",
+   {
+    "inApp": true,
+    "appName": "TikTok",
+    "os": "other"
+   }
+  ],
+  [
+   "Twitter for iPhone",
+   {
+    "inApp": true,
+    "appName": "X",
+    "os": "ios"
+   }
+  ],
+  [
+   "",
+   {
+    "inApp": false,
+    "appName": null,
+    "os": "other"
+   }
+  ]
+ ],
+ "intent": [
+  [
+   "https://tipitaka.lk/library/2",
+   "intent://tipitaka.lk/library/2#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=https%3A%2F%2Ftipitaka.lk%2Flibrary%2F2;end"
+  ],
+  [
+   "https://tipitaka.lk/cloud/12?x=1",
+   "intent://tipitaka.lk/cloud/12?x=1#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=https%3A%2F%2Ftipitaka.lk%2Fcloud%2F12%3Fx%3D1;end"
+  ]
+ ]
+}

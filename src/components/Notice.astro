@@ -1,8 +1,0 @@
----
-// Borderless one-line notice with a leading icon (design-concerns.md rule 3: never boxed).
-import Icon from './Icon.astro'
-import type { IconName } from './Icons.astro'
-interface Props { icon?: IconName; color?: string }
-const { icon = 'magnify', color = 'text-info' } = Astro.props
----
-<p class="si flex items-center gap-2.5 text-base py-2"><Icon name={icon} class={`text-2xl ${color}`} /><span class="leading-snug"><slot /></span></p>

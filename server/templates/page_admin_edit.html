@@ -1,0 +1,101 @@
+{{define "content"}}{{$base := .S.Base}}{{with .D}}{{$e := .E}}{{$isFile := .IsFile}}
+  {{template "adminCrumbs" (dict "Base" $base "Crumbs" .Crumbs)}}
+  <div class="flex flex-wrap items-center gap-3 mb-6">
+    {{icon .Type.Icon (print "text-3xl " .Type.Color)}}
+    <h1 class="text-2xl font-normal min-w-0 break-words">{{$e.Name}}</h1>
+    {{if $e.IsPublished}}<span class="badge bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">Published</span>{{else}}<span class="badge bg-amber-500/15 text-amber-600 dark:text-amber-400">Unpublished</span>{{end}}
+    {{if $e.MissingSince}}<span class="badge bg-rose-500/15 text-rose-600 dark:text-rose-400">Missing from bucket since {{$e.MissingSince}}</span>{{end}}
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
+    <div class="flex flex-col gap-6 min-w-0">
+      <form id="meta-form" data-id="{{$e.ID}}" class="card">
+        <div class="card-head"><h2 class="card-title">Details</h2></div>
+        <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4">
+          <div class="sm:col-span-2"><label class="label" for="f-name">Name</label><input id="f-name" name="name" value="{{$e.Name}}" required class="field">
+            <p class="hint">Changing the name{{if $isFile}} or version{{end}} renames the object in the bucket.</p></div>
+          {{if $isFile}}
+            <div><label class="label" for="f-version">Version / note</label><input id="f-version" name="version" value="{{$e.Version}}" class="field"><p class="hint">The [..] part of the file name, shown next to the name.</p></div>
+            <div><label class="label" for="f-author">Author</label><input id="f-author" name="author" value="{{$e.Author}}" class="field"></div>
+            <div><label class="label" for="f-py">Publishing year</label><input id="f-py" name="publishingYear" inputmode="numeric" value="{{if $e.PublishingYear}}{{$e.PublishingYear}}{{end}}" class="field"></div>
+            <div><label class="label" for="f-pr">Printed year</label><input id="f-pr" name="printedYear" inputmode="numeric" value="{{if $e.PrintedYear}}{{$e.PrintedYear}}{{end}}" class="field"></div>
+            <div class="sm:col-span-2">
+              <span class="label">Description</span>
+              <div class="border border-border rounded-md overflow-hidden focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/25">
+                <div class="flex gap-0.5 p-1 border-b border-border bg-background/40" data-rte-toolbar>
+                  <button type="button" class="btn-icon font-semibold" data-cmd="bold" title="Bold">B</button>
+                  <button type="button" class="btn-icon italic" data-cmd="italic" title="Italic">I</button>
+                  <button type="button" class="btn-icon" data-cmd="insertUnorderedList" title="Bulleted list">•</button>
+                  <button type="button" class="btn-icon" data-cmd="insertOrderedList" title="Numbered list">1.</button>
+                  <button type="button" class="btn-icon" data-cmd="createLink" title="Link">🔗</button>
+                  <button type="button" class="btn-icon text-xs" data-cmd="removeFormat" title="Clear formatting">Tx</button>
+                </div>
+                <div id="description" contenteditable="true" class="rich min-h-32 px-3 py-2 focus:outline-none">{{.Description}}</div>
+              </div>
+            </div>
+          {{end}}
+        </div>
+        <div class="px-5 py-3.5 border-t border-border flex items-center gap-3">
+          <button class="btn-primary">Save changes</button>
+          <span id="save-status" class="text-[13px] text-text-muted"></span>
+        </div>
+      </form>
+
+      {{if eq $e.Type "pdf"}}
+        <section class="card" id="previews" data-id="{{$e.ID}}">
+          <div class="card-head"><h2 class="card-title">Preview pages</h2><span id="pdf-status" class="text-[13px] text-text-muted"></span></div>
+          <div class="p-5 flex flex-col gap-4">
+            <p class="text-[13px] text-text-muted">Pages are rendered in this browser with pdf.js and uploaded as public JPEGs. Needs bucket CORS (Bucket page).</p>
+            <div class="flex flex-wrap items-end gap-2">
+              <div><label class="label" for="f-pages">Pages</label><input id="f-pages" name="pages" class="field w-44" placeholder="e.g. 1, 12" value="{{.PagesValue}}"></div>
+              <button class="btn" data-render>{{icon "eye"}}Render</button>
+              <button class="btn-primary" data-save-previews disabled>{{icon "upload"}}Upload previews</button>
+            </div>
+            <div id="preview-canvases" class="grid grid-cols-2 sm:grid-cols-3 gap-3 empty:hidden" data-zoom-group></div>
+            {{if .Previews}}<div>
+              <p class="label">Current{{if not $e.PreviewPages}} (old thumbnails){{end}}</p>
+              <div class="grid grid-cols-3 sm:grid-cols-4 gap-3" data-zoom-group>{{range .Previews}}
+                <figure class="flex flex-col gap-1">
+                  <img src="{{.URL}}" alt="" data-zoom data-caption="{{if .Page}}Page {{.Page}}{{end}}" class="rounded-md border border-border cursor-zoom-in" onerror="this.closest('figure').remove()">
+                  <figcaption class="text-[12px] text-text-muted">{{if .Page}}Page {{.Page}}{{else}}Page unknown{{end}}</figcaption>
+                </figure>
+              {{end}}</div>
+            </div>{{end}}
+          </div>
+        </section>
+      {{end}}
+    </div>
+
+    <aside class="flex flex-col gap-6">
+      <section class="card">
+        <div class="card-head"><h2 class="card-title">Status</h2></div>
+        <div class="p-5 flex flex-col gap-3">
+          <p class="text-[13px] text-text-muted">{{if $e.IsPublished}}Visible on the public site and in search.{{else}}Hidden from the public site and search. The file stays in the bucket.{{end}}{{if $e.IsFolder}} Applies to everything inside.{{end}}</p>
+          <button class="btn w-full" data-publish="{{$e.ID}}" data-value="{{if $e.IsPublished}}0{{else}}1{{end}}">{{if $e.IsPublished}}{{icon "eyeOff"}}Unpublish{{else}}{{icon "eye"}}Publish{{end}}</button>
+          <a class="btn w-full" href="{{$base}}/{{$e.ID}}">{{icon "openInNew"}}View on site</a>
+          {{if $e.IsFolder}}<a class="btn w-full" href="{{$base}}/admin?folder={{$e.ID}}">{{icon "folder"}}Open folder</a>{{end}}
+        </div>
+      </section>
+      <section class="card">
+        <div class="card-head"><h2 class="card-title">Info</h2></div>
+        <dl class="px-5 py-2 text-[13px]">
+          <div class="kv"><dt>ID</dt><dd>{{$e.ID}}</dd></div>
+          <div class="kv"><dt>Type</dt><dd>{{if $e.IsFolder}}Folder{{else}}{{upper $e.Type}}{{end}}</dd></div>
+          <div class="kv"><dt>Size</dt><dd>{{.Size.Numeral}} {{.Size.Unit}}</dd></div>
+          {{if $isFile}}<div class="kv"><dt>Downloads</dt><dd>{{num $e.Downloads}}</dd></div>{{end}}
+          {{if $e.NumPages}}<div class="kv"><dt>Pages</dt><dd>{{$e.NumPages}}</dd></div>{{end}}
+          <div class="kv"><dt>Added</dt><dd>{{$e.DateAdded}}</dd></div>
+          <div class="kv"><dt>Updated</dt><dd>{{slice10 $e.UpdatedAt}}</dd></div>
+        </dl>
+        <p class="px-5 pb-4 text-[12px] text-text-muted break-all">{{$e.S3Key}}</p>
+      </section>
+      <section class="card border-rose-500/30">
+        <div class="card-head"><h2 class="card-title text-rose-600 dark:text-rose-400">Danger zone</h2></div>
+        <div class="p-5 flex flex-col gap-3">
+          <p class="text-[13px] text-text-muted">{{if $isFile}}Deletes the file and its previews from the bucket, and its download count. This cannot be undone.{{else if .HasChildren}}Only empty folders can be deleted.{{else}}Removes this empty folder.{{end}}</p>
+          <button class="btn-danger w-full" data-delete="{{$e.ID}}" data-name="{{$e.Name}}" data-parent="{{.ParentForDelete}}"{{if .HasChildren}} disabled{{end}}>{{icon "delete"}}Delete {{if $isFile}}file{{else}}folder{{end}}</button>
+        </div>
+      </section>
+    </aside>
+  </div>
+{{end}}{{end}}

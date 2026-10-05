@@ -1,0 +1,51 @@
+{{define "content"}}{{$base := .S.Base}}{{with .D}}
+  <div class="flex flex-wrap items-end justify-between gap-4 mb-5">
+    <div class="min-w-0">
+      {{template "adminCrumbs" (dict "Base" $base "Crumbs" .Crumbs)}}
+      <h1 class="text-2xl font-normal truncate">{{.Heading}}</h1>
+      <p class="text-[13px] text-text-muted mt-0.5">{{.FolderCount}} folders · {{.FileCount}} files{{if .Capped}} (first 500){{end}}</p>
+    </div>
+    <div class="flex flex-wrap items-center gap-2">
+      <form class="relative">
+        {{icon "magnify" "absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted"}}
+        <input name="q" value="{{.Q}}" placeholder="Search name, version or id" class="field w-64 pl-8">
+      </form>
+      {{with .Folder}}{{if .IsFolder}}<a class="btn" href="{{$base}}/admin/edit/{{.ID}}">{{icon "pencil"}}Edit folder</a>{{end}}{{end}}
+      <button class="btn" data-new-folder="{{.FolderID}}">{{icon "folderPlus"}}New folder</button>
+      <a class="btn-primary" href="{{$base}}/admin/upload?folder={{.FolderID}}">{{icon "upload"}}Upload</a>
+    </div>
+  </div>
+
+  <div class="card overflow-hidden">
+    <table class="w-full border-collapse">
+      <thead class="bg-background/40 border-b border-border">
+        <tr><th class="th w-16">ID</th><th class="th">Name</th><th class="th hidden md:table-cell">Version</th><th class="th text-right w-24">Size</th><th class="th text-right w-24 hidden sm:table-cell">Downloads</th><th class="th w-24"></th></tr>
+      </thead>
+      <tbody class="divide-y divide-border/60">
+        {{range .Rows}}{{$e := .E}}
+            <tr class="hover:bg-surface-hover/50 {{if .Muted}}text-text-muted{{end}}">
+              <td class="td text-[13px] text-text-muted tabular-nums">{{$e.ID}}</td>
+              <td class="td">
+                <div class="flex items-center gap-2.5 min-w-0">
+                  {{icon .Type.Icon (print "text-lg " .Type.Color)}}
+                  <a href="{{.Href}}" class="hover:text-primary truncate">{{$e.Name}}</a>
+                  {{if $e.IsFolder}}<span class="text-[12px] text-text-muted shrink-0">{{$e.NumEntries}}</span>{{end}}
+                  {{if not $e.IsPublished}}<span class="badge bg-amber-500/15 text-amber-600 dark:text-amber-400">Unpublished</span>{{end}}
+                  {{if $e.MissingSince}}<span class="badge bg-rose-500/15 text-rose-600 dark:text-rose-400">Missing</span>{{end}}
+                  {{if eq $e.ParentID -1}}<span class="badge bg-surface-hover text-text-muted">Unlisted</span>{{end}}
+                </div>
+              </td>
+              <td class="td text-text-muted hidden md:table-cell truncate max-w-48">{{$e.Version}}</td>
+              <td class="td text-right tabular-nums whitespace-nowrap">{{.Size.Numeral}} <span class="text-text-muted text-[12px]">{{.Size.Unit}}</span></td>
+              <td class="td text-right tabular-nums text-text-muted hidden sm:table-cell">{{.Downloads}}</td>
+              <td class="td py-1 text-right whitespace-nowrap">
+                <a class="btn-icon" href="{{$base}}/admin/edit/{{$e.ID}}" title="Edit" aria-label="Edit">{{icon "pencil"}}</a>
+                <a class="btn-icon" href="{{$base}}/{{$e.ID}}" title="View on site" aria-label="View on site">{{icon "openInNew"}}</a>
+              </td>
+            </tr>
+        {{end}}
+      </tbody>
+    </table>
+    {{if not .Rows}}<p class="py-12 text-center text-text-muted">{{if .Q}}No matches.{{else}}This folder is empty.{{end}}</p>{{end}}
+  </div>
+{{end}}{{end}}

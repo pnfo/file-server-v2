@@ -1,8 +1,7 @@
 node_modules
 dist
-.astro
+server/bin
 data/*.db*
 data/backups
 config/secrets.json
-public/fs-static/pdfjs-*
 .DS_Store

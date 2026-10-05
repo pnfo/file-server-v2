@@ -1,0 +1,168 @@
+{{/* Borderless one-line notice with a leading icon (design-concerns.md rule 3: never boxed). */}}
+{{define "notice"}}<p class="si flex items-center gap-2.5 text-base py-2">{{icon .Icon (print "text-2xl " .Color)}}<span class="leading-snug">{{.Body}}</span></p>{{end}}
+
+{{define "notFound"}}<p class="si flex items-center gap-2.5 text-base py-2">{{icon "alert" "text-2xl text-rose-500"}}<span class="leading-snug">ඔබ සොයන ගොනුව හෝ බහාලුම හමු නොවීය. <a href="{{.Base}}/" class="text-info hover:text-primary underline">මුල් පිටුවට යන්න</a>.</span></p>{{end}}
+
+{{/* Server-rendered file/folder table. Sorting is done in the browser by client/site.ts, which re-orders these
+   rows using their data-* attributes - there is no framework hydration (design D6). */}}
+{{define "entryTable"}}{{$t := .}}{{$base := .S.Base}}
+<div class="w-full" data-entry-table data-sort-key="{{.SortKey}}" data-sort-dir="{{.SortDir}}">
+  <table class="w-full border-collapse text-base">
+    <thead>
+      <tr class="border-b border-border">
+        {{range .Headers}}
+          <th class="py-2 px-2 font-normal {{.Cls}}"{{if .AriaSort}} aria-sort="{{.AriaSort}}"{{end}}>
+            <button type="button" data-sort="{{.Key}}" data-label="{{.Label}}"
+              class="inline-flex items-center gap-1 hover:text-primary cursor-pointer {{if .RightAligned}}flex-row-reverse{{end}}">
+              <span>{{.Label}}</span>
+              {{icon "arrowUp" (print "text-primary " (hiddenUnless .Up))}}
+              {{icon "arrowDown" (print "text-primary " (hiddenUnless .Down))}}
+            </button>
+          </th>
+        {{end}}
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-border/50">
+      {{range .Rows}}{{$e := .E}}
+        <tr class="hover:bg-surface-hover/60" data-kind="{{$e.Kind}}" data-name="{{$e.Name}}" data-size="{{$e.SizeBytes}}"
+          data-downloads="{{$e.Downloads}}" data-date="{{$e.DateAdded}}" data-parent="{{.DataPar}}">
+          <td class="py-1.5 px-2 align-middle">
+            <div class="flex items-center gap-2">
+              {{icon .Type.Icon (print "text-2xl " .Type.Color)}}
+              <div class="min-w-0 leading-snug">
+                <a href="{{$base}}/{{$e.ID}}" class="text-link hover:text-primary {{.NameFont}}">{{$e.Name}}</a>
+                {{if $e.IsFolder}}<span class="si text-xs text-text-muted ml-2 whitespace-nowrap">ගොනු {{$e.NumEntries}} කි.</span>{{else if $e.Version}}<span class="text-xs text-text-muted ml-2 {{fontClass $e.Version}}">{{$e.Version}}</span>{{end}}
+              </div>
+            </div>
+          </td>
+          {{if $t.ShowParent}}
+            <td class="hidden sm:table-cell py-1.5 px-2 align-middle text-sm text-text-muted max-w-48 truncate">
+              {{with .Parent}}<a href="{{$base}}/{{.ID}}" class="hover:text-primary {{fontClass .Name}}">{{.Name}}</a>{{end}}
+            </td>
+          {{end}}
+          {{if $t.ShowDownloads}}<td class="hidden sm:table-cell py-1.5 px-2 align-middle text-right text-sm text-text-muted tabular-nums">{{if $e.IsFile}}{{$e.Downloads}}{{end}}</td>{{end}}
+          {{if $t.ShowDateAdded}}<td class="hidden sm:table-cell py-1.5 px-2 align-middle text-right text-sm text-text-muted tabular-nums whitespace-nowrap">{{if $e.IsFile}}{{$e.DateAdded}}{{end}}</td>{{end}}
+          <td class="py-1.5 px-2 align-middle text-right text-sm whitespace-nowrap tabular-nums">
+            <span>{{.Size.Numeral}}</span><span class="text-xs ml-1 font-medium {{unitColor .Size.Unit}}">{{.Size.Unit}}</span>
+          </td>
+        </tr>
+      {{end}}
+    </tbody>
+  </table>
+  {{if not .Rows}}<p class="py-6 text-center text-text-muted">මෙම බහාලුමේ ගොනු කිසිවක් නැත.</p>{{end}}
+  {{if gt (len .Rows) 1}}
+    <p class="si flex items-center gap-2.5 text-base py-2 mt-1 border-t border-border/40">
+      {{icon "sort" "text-info text-xl"}}<span data-sort-status>{{.Status}}</span>
+    </p>
+  {{end}}
+</div>
+{{end}}
+
+{{/* Breadcrumbs. The share link (folder views only, concern 10) copies the canonical production URL. */}}
+{{define "topNav"}}{{$base := .S.Base}}
+<div class="flex flex-wrap items-center justify-between gap-2 text-base py-1 mb-1">
+  <nav aria-label="Breadcrumb" class="flex items-center flex-wrap gap-1.5 text-text">
+    <a href="{{$base}}/" class="hover:text-primary flex items-center text-lg" title="මුල් පිටුව">{{icon "home"}}</a>
+    {{range .Parents}}{{icon "chevron" "text-sm text-text-muted opacity-70"}}<a href="{{$base}}/{{.ID}}" class="hover:text-primary {{fontClass .Name}}">{{.Name}}</a>{{end}}
+    {{if .HasCurrent}}{{icon "chevron" "text-sm text-text-muted opacity-70"}}<span class="text-text flex items-center gap-1 {{fontClass .Current}}" aria-current="page">{{if .CurrentIcon}}{{icon .CurrentIcon}}{{end}}{{.Current}}</span>{{end}}
+  </nav>
+  {{if .HasShare}}
+    <button type="button" data-copy="{{.S.Cfg.WebURLRoot}}{{.ShareID}}"
+      class="text-info hover:text-primary flex items-center gap-1 py-0.5 px-2 rounded hover:bg-info/10">
+      {{icon "share" "text-base"}}<span>සබැඳිය</span>
+    </button>
+  {{end}}
+</div>
+{{end}}
+
+{{define "searchResults"}}{{with .D}}
+<div id="search-results" data-title="{{.DataTitle}}">
+  {{template "notice" (dict "Icon" .Icon "Color" .Color "Body" .Text)}}
+  {{with .Table}}{{template "entryTable" .}}{{end}}
+</div>
+{{end}}{{end}}
+
+{{/* The only screen that starts a download (design §5.2). Every action is a plain link to a SigV2-signed CDN URL:
+   no interstitial page and no redirect, so Back always returns here. */}}
+{{define "fileView"}}{{$f := .}}{{$e := .E}}{{$btn := "si w-full sm:w-auto py-2.5 px-6 rounded-lg border flex items-center justify-center gap-2 text-base transition-colors"}}
+{{template "topNav" .Nav}}
+
+<div class="flex flex-col gap-4 py-1" data-file="{{$e.ID}}">
+  <div class="flex items-center gap-3 sm:gap-4">
+    {{icon .Type.Icon (print "text-7xl sm:text-8xl " .Type.Color)}}
+    <div class="min-w-0">
+      <h1 class="text-xl sm:text-2xl font-normal leading-snug break-words {{.NameFont}}">{{$e.Name}}.{{$e.Type}}</h1>
+      {{if $e.Version}}<p class="text-sm text-text-muted mt-1 {{.VersionFont}}">{{$e.Version}}</p>{{end}}
+    </div>
+  </div>
+
+  {{if .Description}}<div class="rich text-base text-text-muted leading-relaxed">{{.Description}}</div>{{end}}
+
+  {{if .Audio}}
+    <audio controls preload="none" src="{{.Player.URL}}" data-hit="{{$e.ID}}" data-mode="stream" data-expires="{{.Player.Expires}}" class="w-full">
+      ඔබගේ අතිරික්සුව (browser) audio අංගය සඳහා සහාය නොදක්වයි.
+    </audio>
+  {{end}}
+
+  <dl class="flex flex-col gap-1.5 text-base">
+    {{range .Stats}}<div class="flex gap-2"><dt class="text-text-muted">{{.K}} :</dt><dd class="text-primary tabular-nums {{fontClass .V}}">{{.V}}</dd></div>{{end}}
+    <div class="flex gap-2"><dt class="text-text-muted">ගොනුවේ ප්‍රමාණය :</dt><dd class="tabular-nums">{{.Size.Numeral}} <span class="text-sm font-semibold {{unitColor .Size.Unit}}">{{.Size.Unit}}</span></dd></div>
+  </dl>
+
+  {{if .Browser.InApp}}
+    <div class="flex flex-col gap-2 py-2 border-y border-border/50">
+      <p class="si flex items-start gap-2.5 text-base">
+        {{icon "info" "text-warning text-xl mt-0.5"}}
+        <span>ඔබ {{or .Browser.AppName "යෙදුමක"}} ඇතුළත බ්‍රව්සරයක සිටී. එහි ගොනු බාගත කිරීම නිසි ලෙස සිදු නොවිය හැක.
+          {{if eq .Browser.OS "android"}} පහත බොත්තමෙන් මෙම පිටුව Chrome හි විවෘත කර බාගත කරගන්න.{{end}}
+          {{if eq .Browser.OS "ios"}} ඉහළ කෙළවරේ ⋯ ඔබා “Open in Safari” / “Open in browser” තෝරන්න, නැතහොත් සබැඳිය පිටපත් කර Safari හි අලවන්න.{{end}}
+        </span>
+      </p>
+      <div class="flex flex-col sm:flex-row gap-3">
+        {{if eq .Browser.OS "android"}}
+          <a href="{{.ChromeIntent}}" class="{{$btn}} bg-amber-500 hover:bg-amber-400 border-amber-600 text-gray-900">{{icon "chrome" "text-lg"}}Chrome එකෙන් විවෘත කරන්න</a>
+        {{end}}
+        {{if eq .Browser.OS "ios"}}
+          <a href="{{.SafariURL}}" class="{{$btn}} bg-amber-500 hover:bg-amber-400 border-amber-600 text-gray-900">{{icon "safari" "text-lg"}}Safari එකෙන් විවෘත කරන්න</a>
+        {{end}}
+        <button type="button" data-copy="{{.PageURL}}" class="{{$btn}} border-border hover:bg-surface-hover">{{icon "copy" "text-lg"}}සබැඳිය පිටපත් කරන්න</button>
+      </div>
+    </div>
+  {{end}}
+
+  <div class="flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-center gap-3 my-1">
+    <a href="{{.Primary.URL}}" data-hit="{{$e.ID}}" data-mode="{{.PrimaryMode}}" data-expires="{{.Primary.Expires}}"
+      class="{{$btn}} bg-[#81c784] hover:bg-[#66bb6a] border-[#66bb6a] text-gray-900 shadow-sm">
+      {{icon .PrimaryIcon "text-lg"}}<span>{{.PrimaryText}}</span>
+    </a>
+    {{with .Save}}
+      <a href="{{.URL}}" data-hit="{{$e.ID}}" data-mode="attachment" data-expires="{{.Expires}}"
+        class="{{$btn}} bg-emerald-500/10 dark:bg-emerald-500/15 hover:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border-emerald-600/40">
+        {{icon "download" "text-lg"}}<span>{{$f.Type.DownloadText}}</span>
+      </a>
+    {{end}}
+    <button type="button" data-copy="{{.PageURL}}"
+      class="{{$btn}} bg-sky-500/10 dark:bg-sky-500/20 hover:bg-sky-500/20 text-sky-700 dark:text-sky-300 border-sky-500/40">
+      {{icon "shareVariant" "text-lg"}}<span>බෙදාගැනීමට සබැඳියක් ගන්න</span>
+    </button>
+  </div>
+
+  {{if .Previews}}
+    <section class="flex flex-col gap-3 mt-2" data-previews>
+      <p class="flex items-center gap-2 text-text-muted text-base">
+        {{icon "images" "text-info text-lg"}}<span>පොතේ පිටු කිහිපයක ඡායාරූප පහතින් බලන්න.</span>
+      </p>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4" data-zoom-group>
+        {{range .Previews}}
+          <figure class="relative bg-black/20 rounded-lg overflow-hidden border border-border/40">
+            <button type="button" data-zoom data-caption="{{if .Page}}පිටුව {{.Page}}{{end}}" class="block w-full cursor-zoom-in" aria-label="{{if .Page}}පිටුව {{.Page}} විශාලව බලන්න{{else}}විශාලව බලන්න{{end}}">
+              <img src="{{.URL}}" alt="{{if .Page}}පිටුව {{.Page}}{{else}}{{$e.Name}}{{end}}" loading="lazy" class="w-full h-auto" onerror="this.closest('figure').remove()">
+            </button>
+            {{if .Page}}<figcaption class="si absolute bottom-2 right-2 bg-black/75 text-white text-xs px-2 py-0.5 rounded pointer-events-none">පිටුව {{.Page}}</figcaption>{{end}}
+          </figure>
+        {{end}}
+      </div>
+    </section>
+  {{end}}
+</div>
+{{end}}

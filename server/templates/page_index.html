@@ -1,0 +1,13 @@
+{{define "content"}}
+  {{template "notice" (dict "Icon" "magnify" "Color" "text-info" "Body" (print "මෙම " .S.Cfg.RootFolderName " තුළ " .S.Cfg.FileTypeName " සෙවීම සඳහා ඉහත කොටුව තුළ සෙවුම් පද යොදන්න."))}}
+  {{template "entryTable" .D.Table}}
+  <footer class="si text-sm text-text-muted text-center py-4 border-t border-border/40 mt-4 leading-relaxed">
+    {{if .D.IsLibrary}}
+        මෙහි ඇතුළත් කර ඇති පොත් බොහොමයක් පැරණි බෞද්ධ පොත් වන අතර ධර්ම දානය සඳහා ලියන ලද පොත් වේ. කතෘ ජිවත්ව සිටින
+        අවස්ථාවලදී කතු අවසරය සහිතව අඩවියට එක් කිරීමට උත්සාහ දරා ඇත. ඔබ කතෘ වන යම් පොතක් මෙම අඩවියෙන් ඉවත් කර ගැනීමට අවශ්‍ය නම් හෝ
+        මෙහි අඩංගු නොවන පොත් අඩවියට ධර්ම දානය පිණිස ඇතුළු කිරීමට අප වෙත ලියන්න admin {{icon "at" "text-primary"}} pitaka.lk.<br>
+        යතුරුලියනය කළ පොත් ඇසුරින් සැකසු අන්තර්ජාලය අනවශ්‍ය (offline) මෘදුකාංග {{icon "laptop" "text-info"}} <a href="{{.S.Base}}/461" class="text-primary hover:underline">පරිගණක සඳහා</a> සහ
+        {{icon "android" "text-success"}} <a href="https://play.google.com/store/apps/details?id=lk.pitaka.books" class="text-primary hover:underline">ඇන්ඩ්‍රොයිඩ් දුරකථන සඳහා</a> බාගත කරගන්න.<br>෴෴
+    {{else}}මෙහි නැති ධර්ම දේශනා සහ පොත් අඩවියට ධර්ම දානය පිණිස ඇතුළු කිරීමට අප වෙත ලියන්න admin {{icon "at" "text-primary"}} pitaka.lk.<br>෴෴{{end}}
+  </footer>
+{{end}}

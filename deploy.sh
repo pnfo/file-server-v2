@@ -1,42 +1,38 @@
 #!/usr/bin/env bash
-# Build locally and deploy to the droplet:   ./deploy.sh   (PM2 app file-server-v2: /library, /cloud on 8090)
-# Safe to re-run: it never overwrites the server's data/*.db (live download counts) or config/secrets.json;
-# those are only copied if missing on the server. Override the target with DEPLOY_HOST / DEPLOY_DIR.
+# Build and deploy to the droplet:   ./deploy.sh
+# Same mechanism as the tipitaka.lk Go servers: a linux binary in ~/www/file_server (= /var/www/html/file_server),
+# run by the systemd unit file_server (server/file_server.service), restarted with sudo over ssh.
+# Never overwrites the server's config/secrets.json or data/*.db. Keeps the previous binary as file_server.prev.
+# Override the target with DEPLOY_HOST.
 set -euo pipefail
 cd "$(dirname "$0")"
 
-app=file-server-v2; port=8090; prefix=library
 host=${DEPLOY_HOST:-tipitaka.lk}
-dir=${DEPLOY_DIR:-file-server-v2}
-remote() { ssh "$host" "source ~/.nvm/nvm.sh >/dev/null && cd ~/$dir && $1"; }
+dir=www/file_server
+port=8090
 
-echo "==> build"
-npm run build
+echo "==> test + build"
+node scripts/build-assets.mjs >/dev/null
+(cd server && go test ./... >/dev/null && GOOS=linux GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags "-s -w" -o bin/file_server_linux_intel .)
 
 echo "==> upload to $host:~/$dir"
-ssh "$host" "mkdir -p ~/$dir/src ~/$dir/config ~/$dir/data"
-rsync -az --delete dist/ "$host:$dir/dist/"
-rsync -az --delete src/lib/ "$host:$dir/src/lib/"
-rsync -az --delete scripts/ "$host:$dir/scripts/"
-rsync -az --delete deploy/ "$host:$dir/deploy/"
-rsync -az package.json package-lock.json ecosystem.config.cjs "$host:$dir/"
+ssh "$host" "mkdir -p ~/$dir/config ~/$dir/data"
+rsync -az server/bin/file_server_linux_intel "$host:$dir/file_server.new"
+rsync -az --delete server/dist/ "$host:$dir/dist/"
+rsync -az --delete deploy/nginx/ "$host:$dir/nginx/"
 rsync -az config/library.json config/cloud.json config/secrets.example.json "$host:$dir/config/"
-# copied only when missing on the server
-rsync -az --ignore-existing config/secrets.json "$host:$dir/config/"
-for site in library cloud; do
-  if ! ssh "$host" "test -f ~/$dir/data/$site.db"; then
-    echo "    first deploy: copying data/$site.db"
-    node -e "new (require('node:sqlite').DatabaseSync)('data/$site.db').exec('PRAGMA wal_checkpoint(TRUNCATE)')"
-    rsync -az "data/$site.db" "$host:$dir/data/"
-  fi
-done
+rsync -az server/file_server.service "$host:$dir/"
+ssh "$host" "test -f ~/$dir/config/secrets.json" || { echo "missing ~/$dir/config/secrets.json on the server (see secrets.example.json)" >&2; exit 1; }
+ssh "$host" "cd ~/$dir && { test -f file_server && cp file_server file_server.prev || true; } && mv file_server.new file_server && chmod +x file_server"
 
-echo "==> dependencies"
-remote 'sum=$(sha1sum package-lock.json | cut -d" " -f1); if [ "$(cat .deps-sum 2>/dev/null)" != "$sum" ]; then npm ci --omit=dev --no-audit --no-fund && echo "$sum" > .deps-sum; else echo "    unchanged"; fi'
-
-echo "==> (re)start $app"
-remote "pm2 startOrReload ecosystem.config.cjs --only $app --update-env && pm2 save >/dev/null"
+echo "==> restart (sudo)"
+ssh -t "$host" "sudo systemctl restart file_server"
 
 echo "==> health"
-sleep 2
-remote "curl -fsS http://127.0.0.1:$port/$prefix/api/health" && echo || { echo "health check failed - see: pm2 logs $app" >&2; exit 1; }
+for i in $(seq 1 20); do
+  if out=$(ssh "$host" "curl -fsS http://127.0.0.1:$port/library/api/health" 2>/dev/null); then echo "$out"; exit 0; fi
+  sleep 1
+done
+echo "health check failed - see: ssh $host 'journalctl -u file_server -n 50'" >&2
+echo "rollback: ssh -t $host 'cd ~/$dir && mv file_server.prev file_server && sudo systemctl restart file_server'" >&2
+exit 1

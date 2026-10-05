@@ -1,32 +1,27 @@
 {
   "name": "file-server-v2",
   "type": "module",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
+  "description": "tipitaka.lk/library and /cloud file server: Go server (server/), browser assets built with Node",
   "engines": {
     "node": ">=22.18"
   },
   "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "start": "node dist/server/entry.mjs",
-    "check": "astro check",
-    "test": "node --test test/*.test.ts",
-    "sync": "node scripts/sync.ts",
-    "test:e2e": "node test/e2e/admin.e2e.mjs"
-  },
-  "dependencies": {
-    "@astrojs/node": "^11.1.6",
-    "@aws-sdk/client-s3": "^3.1144.0",
-    "@aws-sdk/s3-request-presigner": "^3.1144.0",
-    "@mdi/js": "^7.4.47",
-    "@pnfo/singlish-search": "1.2.5",
-    "astro": "^7.3.5"
+    "build": "node scripts/build-assets.mjs && go build -C server -o bin/file_server .",
+    "dev": "npm run build && server/bin/file_server",
+    "test": "go test -C server ./...",
+    "test:e2e": "node test/e2e/admin.e2e.mjs",
+    "check": "tsc --noEmit",
+    "icons": "node scripts/gen-icons.mjs",
+    "deploy": "./deploy.sh"
   },
   "devDependencies": {
-    "@astrojs/check": "*",
-    "@tailwindcss/vite": "^4.3.3",
+    "@aws-sdk/client-s3": "^3.1144.0",
+    "@mdi/js": "^7.4.47",
+    "@tailwindcss/cli": "^4.3.3",
     "@types/node": "^22",
+    "esbuild": "^0.28.2",
     "pdfjs-dist": "^6.3.289",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9"

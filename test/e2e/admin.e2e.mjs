@@ -1,9 +1,10 @@
-// End-to-end admin test: drives the admin UI in headless Chrome against the dev server and the REAL bucket.
+// End-to-end admin test: drives the admin UI in headless Chrome against a local server and the REAL bucket.
 //
 //   npm run test:e2e
 //
 // Needs: config/secrets.json, Google Chrome (or CHROME=/path/to/chrome), and the bucket CORS rule allowing
-// http://localhost:4321 (admin -> Bucket -> Set CORS rule). Starts `astro dev` on :4321 if it isn't running.
+// http://localhost:4321 (admin -> Bucket -> Set CORS rule). Starts the server (server/bin/file_server, built by
+// `npm run build`) on :4321 with this repo's config/ and data/ unless one is already running there.
 // Everything happens inside a new "fs-v2 e2e" folder in the library site, which is deleted at the end
 // (also after a failure). Leftovers from an interrupted run are removed before starting.
 import { spawn } from 'node:child_process'
@@ -19,7 +20,7 @@ const ROOT = 'library'
 const CDN = `https://tipitaka.sgp1.cdn.digitaloceanspaces.com/${ROOT}`
 const PREFIX = 'fs-v2 e2e'
 const PW = JSON.parse(fs.readFileSync('config/secrets.json', 'utf-8')).adminPassword
-const s3 = await import(path.join(APP, 'src/lib/s3.ts'))
+const s3 = await import('./s3.mjs')
 const TMP = fs.mkdtempSync(path.join(os.tmpdir(), 'fs-e2e-'))
 const sleep = ms => new Promise(r => setTimeout(r, ms))
 
@@ -73,13 +74,15 @@ async function cleanup() {
   return ids.length
 }
 
-// ---- dev server + Chrome --------------------------------------------------------------------
+// ---- server + Chrome ------------------------------------------------------------------------
 let devServer
 if (!(await up())) {
-  console.log('starting astro dev on :4321')
-  devServer = spawn('npx', ['astro', 'dev', '--port', '4321'], { cwd: APP, stdio: 'ignore', detached: true })
-  for (let i = 0; i < 60 && !(await up()); i++) await sleep(1000)
-  if (!(await up())) { console.error('dev server did not start'); process.exit(1) }
+  const bin = path.join(APP, 'server/bin/file_server')
+  if (!fs.existsSync(bin)) { console.error('server/bin/file_server not found - run npm run build'); process.exit(1) }
+  console.log('starting the server on :4321')
+  devServer = spawn(bin, ['serve'], { cwd: APP, stdio: 'ignore', detached: true, env: { ...process.env, PORT: '4321', HOST: 'localhost', LOG_REQUESTS: '0' } })
+  for (let i = 0; i < 30 && !(await up()); i++) await sleep(500)
+  if (!(await up())) { console.error('server did not start'); process.exit(1) }
 }
 const chromePath = process.env.CHROME || ['/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', '/usr/bin/google-chrome', '/usr/bin/chromium'].find(p => fs.existsSync(p))
 if (!chromePath) { console.error('Chrome not found - set CHROME=/path/to/chrome'); process.exit(1) }
