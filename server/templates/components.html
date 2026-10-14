@@ -96,8 +96,6 @@
     </div>
   </div>
 
-  {{if .Description}}<div class="rich text-base text-text-muted leading-relaxed">{{.Description}}</div>{{end}}
-
   {{if .Audio}}
     <audio controls preload="none" src="{{.Player.URL}}" data-hit="{{$e.ID}}" data-mode="stream" data-expires="{{.Player.Expires}}" class="w-full">
       ඔබගේ අතිරික්සුව (browser) audio අංගය සඳහා සහාය නොදක්වයි.
@@ -184,5 +182,8 @@
       </div>
     </section>
   {{end}}
+
+  {{/* last: descriptions can be long (summary + the book's own introduction) */}}
+  {{if .Description}}<div class="rich text-base text-text-muted leading-relaxed mt-2">{{.Description}}</div>{{end}}
 </div>
 {{end}}
