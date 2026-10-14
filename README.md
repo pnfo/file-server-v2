@@ -114,6 +114,7 @@ Spaces includes 1 TiB of egress a month and charges $0.01/GiB above that; in Sep
 - Files that disappear from the bucket keep their counts and are hidden (`missing_since`) until they reappear.
 - An unpublished folder hides its whole subtree. Empty folders stay hidden on the public site.
 - Admin can't rename folders that have contents or move files between folders. Do that in the bucket, then sync.
+- Editions: files that are editions of one work share `edition_group` (the smallest id in the group), and each file page lists the others. Set with the admin API `editions` action (`{ids: [...]}` merges, `{ids: [id], clear: true}` takes one out). Sync never changes it.
 - PDF previews: `<site>/previews/{id}-{n}.jpg` (public), with the page numbers stored in `preview_pages`. Otherwise the old `thumbs/{id}-{0,1}.jpg` are shown; those are page 1 and page `floor(pages/2)+1` (how `thumb-generator.js` made them), labelled once the page count is known.
 - Page counts: uploads get them from the browser's pdf.js. Every existing PDF was filled in by the old `scripts/page-counts.ts` (in git history).
 - Sort order: listings use ICU's Sinhala order (`Intl.Collator('si')`), reproduced in [server/collate.go](server/collate.go). The test checks it against strings sorted by ICU.

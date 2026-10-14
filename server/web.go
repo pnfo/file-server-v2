@@ -551,6 +551,7 @@ type FileView struct {
 	PrimaryMode, NameFont    string
 	VersionFont              string
 	Description              template.HTML
+	Editions                 []*Entry // other visible editions of the same work
 }
 
 func buildFileView(s *SiteCtx, e *Entry, ua string) FileView {
@@ -558,7 +559,8 @@ func buildFileView(s *SiteCtx, e *Entry, ua string) FileView {
 	t := getTypeInfo(e.Type)
 	v := FileView{S: s, E: e, Type: t, Size: getSizeInfo(e.SizeBytes), Audio: isAudio(e.Type), Viewable: isViewable(e.Type),
 		Previews: st.Previews(e), Browser: detectBrowser(ua), PageURL: s.Cfg.WebURLRoot + strconv.Itoa(e.ID),
-		NameFont: fontClass(e.Name + ".x"), VersionFont: fontClass(e.Version), Description: template.HTML(e.Description)}
+		NameFont: fontClass(e.Name + ".x"), VersionFont: fontClass(e.Version), Description: template.HTML(e.Description),
+		Editions: st.Editions(e)}
 	v.Nav = topNav(s, st.Parents(e.ID), "", t.Icon, 0, false)
 	// audio: the player is for listening, so the button saves the file; everything else opens in the browser
 	if v.Audio {
@@ -851,7 +853,8 @@ func adminEdit(w http.ResponseWriter, r *http.Request, s *SiteCtx, idStr string)
 	p := newAdminPage(r, s, "Edit "+e.Name)
 	p.D = map[string]any{"E": e, "Type": getTypeInfo(e.Type), "Size": getSizeInfo(e.SizeBytes), "Previews": st.Previews(e),
 		"Crumbs": st.Parents(e.ID), "HasChildren": e.IsFolder() && st.anyChild(e.ID), "IsFile": e.IsFile(),
-		"PagesValue": strings.Join(pages, ", "), "ParentForDelete": max(e.ParentID, 0), "Description": template.HTML(e.Description)}
+		"PagesValue": strings.Join(pages, ", "), "ParentForDelete": max(e.ParentID, 0), "Description": template.HTML(e.Description),
+		"Editions": st.editions(e, false)}
 	b, err := render("admin_edit", "adminLayout", p)
 	writeHTML(w, 200, b, err)
 }
@@ -889,6 +892,14 @@ func adminAPI(w http.ResponseWriter, r *http.Request, s *SiteCtx, action string)
 	case "previews":
 		pages, _ := b["pages"].([]any)
 		res, err = st.SavePreviews(id, pages, b.intOr0("numPages"))
+	case "editions":
+		// {ids: [a, b, ...]} merges them (and the groups they are in) into one group; {ids: [a], clear: true} takes a out
+		var ids []int
+		list, _ := b["ids"].([]any)
+		for _, v := range list {
+			ids = append(ids, orZeroNaN(jsNumber(v, true)))
+		}
+		res, err = st.SetEditions(ids, b.truthy("clear"))
 	case "source-url":
 		var u string
 		if u, err = st.SourceURL(id); err == nil {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"math"
 	"math/rand/v2"
 	"os"
 	"sort"
@@ -222,6 +223,31 @@ func (s *SiteStore) Recent(days int) []*Entry {
 		}
 		return bytes.Compare(out[i].sortKey, out[j].sortKey) < 0
 	})
+	return out
+}
+
+// Editions returns the other visible files in e's edition group: by publishing year (unknown years last), then name.
+func (s *SiteStore) Editions(e *Entry) []*Entry { return s.editions(e, true) }
+
+// editions with visibleOnly=false also returns unpublished and missing files (for the admin).
+func (s *SiteStore) editions(e *Entry, visibleOnly bool) []*Entry {
+	if e.EditionGroup == 0 {
+		return nil
+	}
+	var out []*Entry
+	for _, o := range s.ordered {
+		if o.EditionGroup == e.EditionGroup && o.ID != e.ID && o.IsFile() && (!visibleOnly || s.isVisible(o)) {
+			out = append(out, o)
+		}
+	}
+	// ordered is already by name, so a stable sort on the year keeps names in order within a year
+	yearKey := func(x *Entry) int {
+		if x.PublishingYear == 0 {
+			return math.MaxInt
+		}
+		return x.PublishingYear
+	}
+	sort.SliceStable(out, func(i, j int) bool { return yearKey(out[i]) < yearKey(out[j]) })
 	return out
 }
 

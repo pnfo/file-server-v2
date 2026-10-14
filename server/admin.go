@@ -139,6 +139,11 @@ func (s *SiteStore) SaveMeta(id int, in body) (*Entry, error) {
 	if in.has("isPublished") {
 		next.IsPublished = in.truthy("isPublished")
 	}
+	if in.has("editionGroup") {
+		if next.EditionGroup = max(0, orZero(in.num("editionGroup"))); next.EditionGroup != 0 && !e.IsFile() {
+			return nil, adminErr("only files can have editions")
+		}
+	}
 	// name and version live in the S3 key, so changing them renames the object
 	if next.Name != e.Name || next.Version != e.Version {
 		dir := ""
@@ -330,7 +335,110 @@ func (s *SiteStore) DeleteEntry(id int) error {
 	if err := s.DB.Delete(id); err != nil {
 		return err
 	}
+	// the rest of its edition group may need a new group value (or none, if one file is left)
+	if e.EditionGroup != 0 {
+		_, changed := s.regroup(s.editionMembers(map[int]bool{e.EditionGroup: true}, id))
+		if err := s.DB.SaveMany(changed); err != nil {
+			return err
+		}
+	}
 	return s.reload()
+}
+
+// ---- editions: files that are editions of one work share edition_group, the smallest id in the group ----
+
+// editionMembers returns copies of every entry in the given groups (published or not) except one id, by id.
+func (s *SiteStore) editionMembers(groups map[int]bool, except int) []Entry {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	var out []Entry
+	for _, e := range s.byIDOrder() {
+		if e.EditionGroup != 0 && groups[e.EditionGroup] && e.ID != except {
+			out = append(out, *e)
+		}
+	}
+	return out
+}
+
+// regroup gives members one group value (their smallest id), or none when fewer than two are left. It returns
+// the group and the members that changed.
+func (s *SiteStore) regroup(members []Entry) (group int, changed []*Entry) {
+	if len(members) > 1 {
+		group = members[0].ID
+		for _, m := range members {
+			group = min(group, m.ID)
+		}
+	}
+	for i := range members {
+		if m := &members[i]; m.EditionGroup != group {
+			m.EditionGroup = group
+			changed = append(changed, s.touch(m))
+		}
+	}
+	return group, changed
+}
+
+// SetEditions puts files into one edition group, merging the groups they are already in. With clear, it takes
+// one file out of its group instead. Returns the resulting group and its member ids (the rest of the old group
+// after a clear).
+func (s *SiteStore) SetEditions(ids []int, clear bool) (orderedMap, error) {
+	s.writeMu.Lock()
+	defer s.writeMu.Unlock()
+	listed := map[int]Entry{}
+	groups := map[int]bool{}
+	for _, id := range ids {
+		e, err := s.entryCopy(id)
+		if err != nil {
+			return nil, err
+		}
+		if !e.IsFile() {
+			return nil, adminErr("%d is a folder - only files have editions", id)
+		}
+		listed[id] = e
+		if e.EditionGroup != 0 {
+			groups[e.EditionGroup] = true
+		}
+	}
+	var members []Entry
+	var changed []*Entry
+	if clear {
+		if len(listed) != 1 {
+			return nil, adminErr("clear takes one id")
+		}
+		e := listed[ids[0]]
+		if e.EditionGroup != 0 {
+			members = s.editionMembers(groups, e.ID)
+			e.EditionGroup = 0
+			changed = append(changed, s.touch(&e))
+		}
+	} else {
+		if len(listed) < 2 {
+			return nil, adminErr("choose at least two files")
+		}
+		members = s.editionMembers(groups, 0)
+		for _, e := range listed {
+			if e.EditionGroup == 0 {
+				members = append(members, e)
+			}
+		}
+	}
+	group, regrouped := s.regroup(members)
+	if changed = append(changed, regrouped...); len(changed) > 0 {
+		if err := s.DB.SaveMany(changed); err != nil {
+			return nil, err
+		}
+		if err := s.reload(); err != nil {
+			return nil, err
+		}
+	}
+	out := []int{}
+	if group != 0 {
+		for _, m := range members {
+			out = append(out, m.ID)
+		}
+		sortInts(out)
+	}
+	return orderedMap{{"editionGroup", nullInt(group)}, {"ids", out}}, nil
 }
 
 func (s *SiteStore) SourceURL(id int) (string, error) {

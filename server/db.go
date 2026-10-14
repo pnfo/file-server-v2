@@ -34,6 +34,7 @@ type Entry struct {
 	DateAdded      string // YYYY-MM-DD
 	UpdatedAt      string
 	MissingSince   string
+	EditionGroup   int    // 0 = none; files sharing a group are editions of one work (value: the group's smallest id)
 	sortKey        []byte // collation key of Name (store.reload)
 }
 
@@ -66,10 +67,11 @@ func (e *Entry) MarshalJSON() ([]byte, error) {
 		{"sizeBytes", e.SizeBytes}, {"numEntries", e.NumEntries}, {"numPages", nullInt(e.NumPages)},
 		{"previewPages", pages}, {"downloads", e.Downloads}, {"isPublished", e.IsPublished},
 		{"dateAdded", e.DateAdded}, {"updatedAt", e.UpdatedAt}, {"missingSince", nullStr(e.MissingSince)},
+		{"editionGroup", nullInt(e.EditionGroup)},
 	})
 }
 
-// Each item runs once, in order, tracked by PRAGMA user_version (same list as the Node server's db.ts).
+// Each item runs once, in order, tracked by PRAGMA user_version (the first is the Node server's db.ts schema).
 var migrations = []string{
 	`CREATE TABLE entries (
     id              INTEGER PRIMARY KEY,
@@ -94,6 +96,8 @@ var migrations = []string{
   );
   CREATE INDEX entries_parent ON entries(parent_id);
   CREATE TABLE meta (k TEXT PRIMARY KEY, v TEXT);`,
+	`ALTER TABLE entries ADD COLUMN edition_group INTEGER;
+  CREATE INDEX entries_edition_group ON entries(edition_group);`,
 }
 
 func today() string { return time.Now().UTC().Format("2006-01-02") }
@@ -104,7 +108,7 @@ func nowISO() string { return time.Now().UTC().Format("2006-01-02T15:04:05.000Z"
 type SiteDB struct{ db *sql.DB }
 
 const entryCols = "id, parent_id, kind, type, name, version, author, publishing_year, printed_year, description, " +
-	"s3_key, size_bytes, num_pages, preview_pages, downloads, is_published, date_added, updated_at, missing_since"
+	"s3_key, size_bytes, num_pages, preview_pages, downloads, is_published, date_added, updated_at, missing_since, edition_group"
 
 func openSiteDB(site string) (*SiteDB, error) {
 	return openDBFile(filepath.Join(appRoot, "data", site+".db"))
@@ -146,15 +150,16 @@ func openDBFile(file string) (*SiteDB, error) {
 func scanEntry(rows interface{ Scan(...any) error }) (*Entry, error) {
 	var e Entry
 	var version, author, description, previewPages, missingSince sql.NullString
-	var publishingYear, printedYear, numPages sql.NullInt64
+	var publishingYear, printedYear, numPages, editionGroup sql.NullInt64
 	var isPublished int
 	if err := rows.Scan(&e.ID, &e.ParentID, &e.Kind, &e.Type, &e.Name, &version, &author, &publishingYear, &printedYear,
 		&description, &e.S3Key, &e.SizeBytes, &numPages, &previewPages, &e.Downloads, &isPublished, &e.DateAdded,
-		&e.UpdatedAt, &missingSince); err != nil {
+		&e.UpdatedAt, &missingSince, &editionGroup); err != nil {
 		return nil, err
 	}
 	e.Version, e.Author, e.Description, e.MissingSince = version.String, author.String, description.String, missingSince.String
 	e.PublishingYear, e.PrintedYear, e.NumPages = int(publishingYear.Int64), int(printedYear.Int64), int(numPages.Int64)
+	e.EditionGroup = int(editionGroup.Int64)
 	e.IsPublished = isPublished != 0
 	if previewPages.Valid && previewPages.String != "" {
 		if err := json.Unmarshal([]byte(previewPages.String), &e.PreviewPages); err != nil {
@@ -207,7 +212,7 @@ func saveEntry(x execer, e *Entry) error {
 	_, err := x.Exec("INSERT INTO entries ("+entryCols+") VALUES (?"+strings.Repeat(", ?", len(cols)-1)+") ON CONFLICT(id) DO UPDATE SET "+strings.Join(set, ", "),
 		e.ID, e.ParentID, e.Kind, e.Type, e.Name, nullStr(e.Version), nullStr(e.Author), nullInt(e.PublishingYear),
 		nullInt(e.PrintedYear), nullStr(e.Description), e.S3Key, size, nullInt(e.NumPages), pages, e.Downloads,
-		published, e.DateAdded, e.UpdatedAt, nullStr(e.MissingSince))
+		published, e.DateAdded, e.UpdatedAt, nullStr(e.MissingSince), nullInt(e.EditionGroup))
 	return err
 }
 

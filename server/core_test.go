@@ -4,11 +4,15 @@ import (
 	"bytes"
 	"crypto/hmac"
 	"crypto/sha1"
+	"database/sql"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
+	"net/http/httptest"
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
 	"testing"
@@ -424,5 +428,215 @@ func TestStoreHits(t *testing.T) {
 	}
 	if s.Hit(1, "a") {
 		t.Error("folders are not counted")
+	}
+}
+
+// ---- editions --------------------------------------------------------------------------------
+
+func TestMigrationAddsEditionGroup(t *testing.T) {
+	// a database from before the editions migration (user_version 1), with a row in it
+	file := filepath.Join(t.TempDir(), "old.db")
+	old, err := sql.Open("sqlite", "file:"+file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, q := range []string{migrations[0], "PRAGMA user_version = 1",
+		`INSERT INTO entries (id, kind, type, name, s3_key, date_added, updated_at) VALUES (2, 'file', 'pdf', 'පොත', 'පොත{2}.pdf', '2026-01-01', '2026-01-01')`} {
+		if _, err := old.Exec(q); err != nil {
+			t.Fatal(err)
+		}
+	}
+	old.Close()
+	db, err := openDBFile(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	var version, indexes int
+	db.db.QueryRow("PRAGMA user_version").Scan(&version)
+	db.db.QueryRow("SELECT count(*) FROM sqlite_master WHERE type = 'index' AND name = 'entries_edition_group'").Scan(&indexes)
+	if version != len(migrations) || indexes != 1 {
+		t.Errorf("user_version %d, index %d", version, indexes)
+	}
+	all, err := db.All()
+	if err != nil || len(all) != 1 || all[0].Name != "පොත" || all[0].EditionGroup != 0 {
+		t.Fatalf("rows %+v %v", all, err)
+	}
+}
+
+func TestEditionGroupRoundTrip(t *testing.T) {
+	db, err := openDBFile(filepath.Join(t.TempDir(), "t.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	e := &Entry{ID: 9, Kind: "file", Type: "pdf", Name: "x", S3Key: "x{9}.pdf", IsPublished: true, DateAdded: "2026-01-01", EditionGroup: 4}
+	if err := db.Save(e); err != nil {
+		t.Fatal(err)
+	}
+	all, _ := db.All()
+	if len(all) != 1 || all[0].EditionGroup != 4 {
+		t.Fatalf("saved %+v", all)
+	}
+	if b, _ := all[0].MarshalJSON(); !strings.Contains(string(b), `"editionGroup":4`) {
+		t.Errorf("json %s", b)
+	}
+	e.EditionGroup = 0
+	db.Save(e)
+	all, _ = db.All()
+	if b, _ := all[0].MarshalJSON(); all[0].EditionGroup != 0 || !strings.Contains(string(b), `"editionGroup":null`) {
+		t.Errorf("cleared: %s", b)
+	}
+}
+
+// editionStore is testStore plus files 7-9 in folder 1 (9 unpublished).
+func editionStore(t *testing.T) *SiteStore {
+	t.Helper()
+	s := testStore(t)
+	var extra []*Entry
+	for _, e := range []Entry{{ID: 7, Name: "b edition", PublishingYear: 1990}, {ID: 8, Name: "a edition", PublishingYear: 1990},
+		{ID: 9, Name: "draft", PublishingYear: 1950}} {
+		e.ParentID, e.Kind, e.Type, e.S3Key, e.IsPublished, e.DateAdded = 1, "file", "pdf", e.Name+".pdf", e.ID != 9, "2026-01-01"
+		extra = append(extra, &e)
+	}
+	if err := s.DB.SaveMany(extra); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.reload(); err != nil {
+		t.Fatal(err)
+	}
+	return s
+}
+
+func groupOf(t *testing.T, s *SiteStore) map[int]int {
+	t.Helper()
+	all, err := s.DB.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	g := map[int]int{}
+	for _, e := range all {
+		if e.EditionGroup != 0 {
+			g[e.ID] = e.EditionGroup
+		}
+	}
+	return g
+}
+
+func TestSetEditions(t *testing.T) {
+	s := editionStore(t)
+	check := func(res orderedMap, err error, group int, ids ...int) {
+		t.Helper()
+		if err != nil {
+			t.Fatal(err)
+		}
+		b, _ := marshalJSON(res)
+		want, _ := marshalJSON(orderedMap{{"editionGroup", nullInt(group)}, {"ids", append([]int{}, ids...)}})
+		if string(b) != string(want) {
+			t.Errorf("got %s, want %s", b, want)
+		}
+	}
+	res, err := s.SetEditions([]int{8, 7}, false)
+	check(res, err, 7, 7, 8)
+	res, err = s.SetEditions([]int{3, 2, 3}, false)
+	check(res, err, 2, 2, 3)
+	// 8 and 3 are in different groups: both groups merge into one, numbered by the smallest id
+	res, err = s.SetEditions([]int{8, 3, 9}, false)
+	check(res, err, 2, 2, 3, 7, 8, 9)
+	if g := groupOf(t, s); len(g) != 5 || g[7] != 2 || g[9] != 2 {
+		t.Errorf("saved groups %v", g)
+	}
+	// taking out the smallest id renumbers the rest
+	res, err = s.SetEditions([]int{2}, true)
+	check(res, err, 3, 3, 7, 8, 9)
+	if g := groupOf(t, s); len(g) != 4 || g[2] != 0 || g[8] != 3 {
+		t.Errorf("after clear %v", g)
+	}
+	// a group of one is no group
+	s.SetEditions([]int{3}, true)
+	s.SetEditions([]int{7}, true)
+	res, err = s.SetEditions([]int{8}, true)
+	check(res, err, 0)
+	if g := groupOf(t, s); len(g) != 0 {
+		t.Errorf("after clearing all %v", g)
+	}
+	for _, c := range []struct {
+		ids   []int
+		clear bool
+	}{{[]int{2}, false}, {[]int{2, 2}, false}, {[]int{2, 1}, false}, {[]int{2, 99}, false}, {[]int{2, 3}, true}, {nil, true}} {
+		var ae *AdminError
+		if _, err := s.SetEditions(c.ids, c.clear); !errors.As(err, &ae) {
+			t.Errorf("SetEditions(%v, %v) = %v, want an AdminError", c.ids, c.clear, err)
+		}
+	}
+}
+
+func TestSaveMetaEditionGroup(t *testing.T) {
+	s := editionStore(t)
+	if e, err := s.SaveMeta(2, body{"editionGroup": float64(2)}); err != nil || e.EditionGroup != 2 {
+		t.Fatalf("save %+v %v", e, err)
+	}
+	if e, err := s.SaveMeta(2, body{"author": "x"}); err != nil || e.EditionGroup != 2 {
+		t.Errorf("a save without editionGroup keeps it: %+v %v", e, err)
+	}
+	if e, err := s.SaveMeta(2, body{"editionGroup": nil}); err != nil || e.EditionGroup != 0 {
+		t.Errorf("null clears it: %+v %v", e, err)
+	}
+	if _, err := s.SaveMeta(1, body{"editionGroup": float64(1)}); err == nil {
+		t.Error("folders have no editions")
+	}
+}
+
+func TestStoreEditions(t *testing.T) {
+	s := editionStore(t)
+	// 5 is in an unpublished folder, 6 is missing from the bucket, 9 is unpublished
+	if _, err := s.SetEditions([]int{2, 3, 5, 6, 7, 8, 9}, false); err != nil {
+		t.Fatal(err)
+	}
+	ids := func(list []*Entry) []int {
+		var out []int
+		for _, e := range list {
+			out = append(out, e.ID)
+		}
+		return out
+	}
+	// by year (no year last), then by name
+	if got := ids(s.Editions(s.GetAny(3))); !slices.Equal(got, []int{8, 7, 2}) {
+		t.Errorf("editions of 3 = %v", got)
+	}
+	if got := ids(s.Editions(s.GetAny(2))); !slices.Equal(got, []int{8, 7, 3}) {
+		t.Errorf("editions of 2 = %v", got)
+	}
+	if got := ids(s.editions(s.GetAny(2), false)); !slices.Equal(got, []int{9, 8, 7, 3, 6, 5}) {
+		t.Errorf("admin editions of 2 = %v", got)
+	}
+	if s.Editions(s.GetAny(1)) != nil {
+		t.Error("an entry without a group has no editions")
+	}
+}
+
+func TestEditionsOnPages(t *testing.T) {
+	s := editionStore(t)
+	os.WriteFile(filepath.Join(appRoot, "config", "secrets.json"), []byte(`{"s3":{},"signer":{}}`), 0o644)
+	loadTemplates()
+	if _, err := s.SetEditions([]int{2, 7, 9}, false); err != nil {
+		t.Fatal(err)
+	}
+	site := &SiteCtx{ID: "library", Base: "/library", Cfg: s.Cfg, Store: s}
+	w := httptest.NewRecorder()
+	pageEntry(w, httptest.NewRequest("GET", "/library/2", nil), site, "2")
+	html := w.Body.String()
+	if w.Code != 200 || !strings.Contains(html, "වෙනත් සංස්කරණ") || !strings.Contains(html, `href="/library/7"`) || strings.Contains(html, `href="/library/9"`) {
+		t.Errorf("file page %d:\n%s", w.Code, html)
+	}
+	w = httptest.NewRecorder()
+	pageEntry(w, httptest.NewRequest("GET", "/library/3", nil), site, "3")
+	if strings.Contains(w.Body.String(), "වෙනත් සංස්කරණ") {
+		t.Error("no editions section without a group")
+	}
+	w = httptest.NewRecorder()
+	adminEdit(w, httptest.NewRequest("GET", "/library/admin/edit/2", nil), site, "2")
+	if html := w.Body.String(); !strings.Contains(html, `href="/library/admin/edit/7"`) || !strings.Contains(html, `href="/library/admin/edit/9"`) {
+		t.Errorf("admin edit page:\n%s", html)
 	}
 }

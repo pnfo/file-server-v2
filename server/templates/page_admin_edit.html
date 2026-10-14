@@ -86,9 +86,21 @@
           {{if $e.NumPages}}<div class="kv"><dt>Pages</dt><dd>{{$e.NumPages}}</dd></div>{{end}}
           <div class="kv"><dt>Added</dt><dd>{{$e.DateAdded}}</dd></div>
           <div class="kv"><dt>Updated</dt><dd>{{slice10 $e.UpdatedAt}}</dd></div>
+          {{if $e.EditionGroup}}<div class="kv"><dt>Edition group</dt><dd>{{$e.EditionGroup}}</dd></div>{{end}}
         </dl>
         <p class="px-5 pb-4 text-[12px] text-text-muted break-all">{{$e.S3Key}}</p>
       </section>
+      {{if .Editions}}
+        <section class="card">
+          <div class="card-head"><h2 class="card-title">Other editions</h2></div>
+          <ul class="px-5 py-2 text-[13px]">
+            {{range .Editions}}
+              <li class="kv"><a href="{{$base}}/admin/edit/{{.ID}}" class="min-w-0 break-words hover:text-primary{{if not (and .IsPublished (not .MissingSince))}} text-text-muted{{end}}">{{.Name}}{{if .Version}} [{{.Version}}]{{end}}</a>
+                <span class="text-text-muted tabular-nums">{{if .PublishingYear}}{{.PublishingYear}}{{end}}</span></li>
+            {{end}}
+          </ul>
+        </section>
+      {{end}}
       <section class="card border-rose-500/30">
         <div class="card-head"><h2 class="card-title text-rose-600 dark:text-rose-400">Danger zone</h2></div>
         <div class="p-5 flex flex-col gap-3">

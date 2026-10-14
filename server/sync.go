@@ -1,7 +1,8 @@
 package main
 
 // S3 is the source of truth for which files exist, where they sit and their name/version/id/type.
-// SQLite keeps everything else (downloads, dates, metadata, previews, published flag). See design §8.2.
+// SQLite keeps everything else (downloads, dates, metadata, previews, published flag, edition group). See design §8.2.
+// Rows are updated from a copy of the existing entry, so the fields sync does not own are written back unchanged.
 
 import (
 	"encoding/json"

@@ -147,6 +147,26 @@
     </button>
   </div>
 
+  {{if .Editions}}
+    <section class="flex flex-col gap-1 mt-2" data-editions>
+      <p class="flex items-center gap-2 text-text-muted text-base">
+        {{icon "book" "text-info text-lg"}}<span>වෙනත් සංස්කරණ</span>
+      </p>
+      <ul class="divide-y divide-border/50 text-base">
+        {{range .Editions}}{{$t := typeInfo .Type}}
+          <li class="flex items-center gap-2 py-1.5 px-2">
+            {{icon $t.Icon (print "text-2xl " $t.Color)}}
+            <div class="min-w-0 leading-snug">
+              <a href="{{$f.S.Base}}/{{.ID}}" class="text-link hover:text-primary {{fontClass .Name}}">{{.Name}}</a>
+              {{if .Version}}<span class="text-xs text-text-muted ml-2 {{fontClass .Version}}">{{.Version}}</span>{{end}}
+              {{if or .Author .PublishingYear}}<p class="text-sm text-text-muted">{{if .Author}}<span class="{{fontClass .Author}}">{{.Author}}</span>{{end}}{{if and .Author .PublishingYear}} · {{end}}{{if .PublishingYear}}<span class="tabular-nums">{{.PublishingYear}}</span>{{end}}</p>{{end}}
+            </div>
+          </li>
+        {{end}}
+      </ul>
+    </section>
+  {{end}}
+
   {{if .Previews}}
     <section class="flex flex-col gap-3 mt-2" data-previews>
       <p class="flex items-center gap-2 text-text-muted text-base">
