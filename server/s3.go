@@ -94,7 +94,10 @@ func s3Exists(key string) bool {
 	return err == nil
 }
 
-func s3Move(fromKey, toKey string) error {
+// s3Move is a variable so tests can record moves instead of calling the bucket.
+var s3Move = s3MoveObject
+
+func s3MoveObject(fromKey, toKey string) error {
 	if fromKey == toKey {
 		return nil
 	}

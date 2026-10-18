@@ -148,6 +148,30 @@ func (s *SiteStore) anyChild(id int) bool {
 	return false
 }
 
+// FolderChoice is a folder offered as a move target in the admin: its id and its full path.
+type FolderChoice struct {
+	ID    int
+	Label string
+}
+
+// FolderChoices lists every folder by its full path (Sinhala collation), except one id. Expects s.mu held.
+func (s *SiteStore) FolderChoices(except int) []FolderChoice {
+	var out []FolderChoice
+	for _, e := range s.ordered {
+		if !e.IsFolder() || e.ID <= 0 || e.ID == except {
+			continue
+		}
+		parts := []string{}
+		for _, p := range s.Parents(e.ID) {
+			parts = append(parts, p.Name)
+		}
+		out = append(out, FolderChoice{e.ID, strings.Join(append(parts, e.Name), " › ")})
+	}
+	coll := newCollator()
+	sort.SliceStable(out, func(i, j int) bool { return coll.Compare(out[i].Label, out[j].Label) < 0 })
+	return out
+}
+
 // Parents returns the ancestors from the root down, excluding the entry itself.
 func (s *SiteStore) Parents(id int) []*Entry {
 	var chain []*Entry

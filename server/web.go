@@ -854,7 +854,7 @@ func adminEdit(w http.ResponseWriter, r *http.Request, s *SiteCtx, idStr string)
 	p.D = map[string]any{"E": e, "Type": getTypeInfo(e.Type), "Size": getSizeInfo(e.SizeBytes), "Previews": st.Previews(e),
 		"Crumbs": st.Parents(e.ID), "HasChildren": e.IsFolder() && st.anyChild(e.ID), "IsFile": e.IsFile(),
 		"PagesValue": strings.Join(pages, ", "), "ParentForDelete": max(e.ParentID, 0), "Description": template.HTML(e.Description),
-		"Editions": st.editions(e, false)}
+		"Editions": st.editions(e, false), "Folders": st.FolderChoices(e.ID)}
 	b, err := render("admin_edit", "adminLayout", p)
 	writeHTML(w, 200, b, err)
 }

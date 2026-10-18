@@ -63,7 +63,7 @@ It needs `npm run build`, `config/secrets.json`, Google Chrome (or `CHROME=/path
 |---|---|
 | `adminPassword` | `/<site>/admin/login` |
 | `sessionSecret` | signs the admin session cookie (long random string) |
-| `s3` | read/write Spaces key: sync, admin uploads/renames/deletes, backups |
+| `s3` | read/write Spaces key: sync, admin uploads/renames/moves/deletes, backups |
 | `signer` | **read-only** Spaces key for public download links. If it's missing, `s3` is used and a warning is logged. Create a key limited to read on the `tipitaka` bucket. |
 
 Environment (set in [server/file_server.service](server/file_server.service) on the droplet):
@@ -113,7 +113,7 @@ Spaces includes 1 TiB of egress a month and charges $0.01/GiB above that; in Sep
 - Bucket naming is unchanged: `name[version]{id}.type`, folders `name{id}`. A folder segment without `{id}` makes everything below it unlisted (reachable by id, not listed).
 - Files that disappear from the bucket keep their counts and are hidden (`missing_since`) until they reappear.
 - An unpublished folder hides its whole subtree. Empty folders stay hidden on the public site.
-- Admin can't rename folders that have contents or move files between folders. Do that in the bucket, then sync.
+- Admin can move a file (or an empty folder) to another folder from its edit page; the object moves in the bucket, the id and link stay. Folders that have contents can't be renamed or moved there: do that in the bucket, then sync.
 - Editions: files that are editions of one work share `edition_group` (the smallest id in the group), and each file page lists the others. Set with the admin API `editions` action (`{ids: [...]}` merges, `{ids: [id], clear: true}` takes one out). Sync never changes it.
 - PDF previews: `<site>/previews/{id}-{n}.jpg` (public), with the page numbers stored in `preview_pages`. Otherwise the old `thumbs/{id}-{0,1}.jpg` are shown; those are page 1 and page `floor(pages/2)+1` (how `thumb-generator.js` made them), labelled once the page count is known.
 - Page counts: uploads get them from the browser's pdf.js. Every existing PDF was filled in by the old `scripts/page-counts.ts` (in git history).

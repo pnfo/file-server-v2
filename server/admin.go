@@ -144,21 +144,46 @@ func (s *SiteStore) SaveMeta(id int, in body) (*Entry, error) {
 			return nil, adminErr("only files can have editions")
 		}
 	}
-	// name and version live in the S3 key, so changing them renames the object
-	if next.Name != e.Name || next.Version != e.Version {
-		dir := ""
-		if i := strings.LastIndex(e.S3Key, "/"); i >= 0 {
-			dir = e.S3Key[:i+1]
+	dir, base := "", e.S3Key
+	if i := strings.LastIndex(e.S3Key, "/"); i >= 0 {
+		dir, base = e.S3Key[:i+1], e.S3Key[i+1:]
+	}
+	// parentId moves the entry to another folder (0 = the root): its key gets the new folder's path
+	moved := false
+	if in.has("parentId") {
+		if to := orZero(in.num("parentId")); to != e.ParentID {
+			if to == e.ID {
+				return nil, adminErr("a folder cannot be moved into itself")
+			}
+			s.mu.RLock()
+			d, err := s.parentPath(to)
+			s.mu.RUnlock()
+			if err != nil {
+				return nil, err
+			}
+			next.ParentID, dir, moved = to, d, true
 		}
+	}
+	// name and version live in the S3 key too, so changing them renames the object
+	renamed := next.Name != e.Name || next.Version != e.Version
+	if moved || renamed {
 		if e.IsFolder() {
 			if s.hasChildrenLocked(e.ID) {
-				return nil, adminErr("folders with contents cannot be renamed here (every file key would change) - rename in the bucket and run sync")
+				return nil, adminErr("folders with contents cannot be renamed or moved here (every file key would change) - do it in the bucket and run sync")
 			}
-			next.S3Key = dir + buildFolderName(next.Name, e.ID)
+			if renamed {
+				base = buildFolderName(next.Name, e.ID)
+			}
+			next.S3Key = dir + base
 		} else {
-			next.S3Key = dir + buildFileName(next.Name, next.Version, e.ID, e.Type)
-			if err := s3Move(s.objectKey(e.S3Key), s.objectKey(next.S3Key)); err != nil {
-				return nil, err
+			if renamed {
+				base = buildFileName(next.Name, next.Version, e.ID, e.Type)
+			}
+			next.S3Key = dir + base
+			if next.S3Key != e.S3Key {
+				if err := s3Move(s.objectKey(e.S3Key), s.objectKey(next.S3Key)); err != nil {
+					return nil, err
+				}
 			}
 		}
 	}

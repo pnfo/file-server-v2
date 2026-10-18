@@ -83,10 +83,15 @@ if (metaForm) {
     const body: Record<string, unknown> = { id: metaForm.dataset.id, name: f.get('name') }
     for (const k of ['version', 'author', 'publishingYear', 'printedYear']) if (f.has(k)) body[k] = f.get(k)
     if (desc) body.description = desc.innerHTML
+    // only a changed folder is sent: an untouched form never moves the entry
+    const parent = $<HTMLSelectElement>('#f-parent')
+    const moving = !!parent && !parent.disabled && parent.value !== parent.dataset.initial
+    if (moving) body.parentId = Number(parent!.value)
     const status = $('#save-status')!
     status.textContent = 'Saving...'
     try {
       const saved = await api('save', body)
+      if (moving) { location.reload(); return } // breadcrumbs and key change with the folder
       status.textContent = `Saved ${new Date().toLocaleTimeString()}`
       if (desc) desc.innerHTML = saved.description || ''
     } catch (err) { status.textContent = ''; toast((err as Error).message, true) }

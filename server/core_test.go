@@ -639,4 +639,74 @@ func TestEditionsOnPages(t *testing.T) {
 	if html := w.Body.String(); !strings.Contains(html, `href="/library/admin/edit/7"`) || !strings.Contains(html, `href="/library/admin/edit/9"`) {
 		t.Errorf("admin edit page:\n%s", html)
 	}
+	// the folder picker: current folder selected, every folder offered, disabled for a folder with contents
+	if html := w.Body.String(); !strings.Contains(html, `data-initial="1"`) || !strings.Contains(html, `<option value="1" selected>අභිධර්ම</option>`) ||
+		!strings.Contains(html, `<option value="4">hidden folder</option>`) || strings.Contains(html, `id="f-parent" name="parentId" class="field" data-initial="1" disabled`) {
+		t.Errorf("folder picker on a file page:\n%s", html)
+	}
+	w = httptest.NewRecorder()
+	adminEdit(w, httptest.NewRequest("GET", "/library/admin/edit/1", nil), site, "1")
+	if html := w.Body.String(); !strings.Contains(html, `data-initial="0" disabled`) || strings.Contains(html, `<option value="1"`) {
+		t.Errorf("folder picker on a folder with contents:\n%s", html)
+	}
+}
+
+func TestSaveMetaMove(t *testing.T) {
+	s := testStore(t)
+	var moves [][2]string
+	s3Move = func(from, to string) error { moves = append(moves, [2]string{from, to}); return nil }
+	t.Cleanup(func() { s3Move = s3MoveObject })
+	if err := s.DB.SaveMany([]*Entry{
+		{ID: 10, Kind: "folder", Type: "folder", Name: "A", S3Key: "A{10}", IsPublished: true, DateAdded: "2026-01-01"},
+		{ID: 11, ParentID: 10, Kind: "folder", Type: "folder", Name: "B", S3Key: "A{10}/B{11}", IsPublished: true, DateAdded: "2026-01-01"},
+		{ID: 12, ParentID: 10, Kind: "file", Type: "pdf", Name: "book", S3Key: "A{10}/book{12}.pdf", IsPublished: true, DateAdded: "2026-01-01"},
+		{ID: 13, Kind: "folder", Type: "folder", Name: "C", S3Key: "C{13}", IsPublished: true, DateAdded: "2026-01-01"},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.reload(); err != nil {
+		t.Fatal(err)
+	}
+	isAdminErr := func(err error) bool { var ae *AdminError; return errors.As(err, &ae) }
+
+	// a save without parentId never moves
+	if e, err := s.SaveMeta(12, body{"author": "x"}); err != nil || e.S3Key != "A{10}/book{12}.pdf" || len(moves) != 0 {
+		t.Fatalf("plain save: %+v %v %v", e, err, moves)
+	}
+	// into a subfolder: same base name under the new folder's path
+	e, err := s.SaveMeta(12, body{"parentId": float64(11)})
+	if err != nil || e.ParentID != 11 || e.S3Key != "A{10}/B{11}/book{12}.pdf" {
+		t.Fatalf("move: %+v %v", e, err)
+	}
+	if len(moves) != 1 || moves[0] != [2]string{"library/A{10}/book{12}.pdf", "library/A{10}/B{11}/book{12}.pdf"} {
+		t.Errorf("s3 moves %v", moves)
+	}
+	if got := s.GetAny(12); got.ParentID != 11 || got.S3Key != e.S3Key {
+		t.Errorf("not reloaded: %+v", got)
+	}
+	// move and rename at once: one object move
+	moves = nil
+	e, err = s.SaveMeta(12, body{"parentId": float64(13), "name": "new", "version": "v2"})
+	want := "C{13}/" + buildFileName("new", "v2", 12, "pdf")
+	if err != nil || e.ParentID != 13 || e.S3Key != want || len(moves) != 1 || moves[0][1] != "library/"+want {
+		t.Fatalf("move+rename: %+v %v %v", e, err, moves)
+	}
+	// to the top level
+	if e, err = s.SaveMeta(12, body{"parentId": float64(0)}); err != nil || e.ParentID != 0 || e.S3Key != buildFileName("new", "v2", 12, "pdf") {
+		t.Errorf("to root: %+v %v", e, err)
+	}
+	// an empty folder moves without touching the bucket; a folder with contents does not move
+	moves = nil
+	if e, err = s.SaveMeta(13, body{"parentId": float64(10)}); err != nil || e.S3Key != "A{10}/C{13}" || len(moves) != 0 {
+		t.Errorf("empty folder: %+v %v %v", e, err, moves)
+	}
+	if _, err = s.SaveMeta(10, body{"parentId": float64(13)}); !isAdminErr(err) {
+		t.Errorf("folder with contents moved: %v", err)
+	}
+	// targets must be folders; nothing moves into itself
+	for _, c := range []struct{ id, to int }{{12, 2}, {12, 99}, {13, 13}} {
+		if _, err := s.SaveMeta(c.id, body{"parentId": float64(c.to)}); !isAdminErr(err) {
+			t.Errorf("move %d -> %d: %v, want an AdminError", c.id, c.to, err)
+		}
+	}
 }

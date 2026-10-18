@@ -14,6 +14,13 @@
         <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4">
           <div class="sm:col-span-2"><label class="label" for="f-name">Name</label><input id="f-name" name="name" value="{{$e.Name}}" required class="field">
             <p class="hint">Changing the name{{if $isFile}} or version{{end}} renames the object in the bucket.</p></div>
+          <div class="sm:col-span-2"><label class="label" for="f-parent">Folder</label>
+            <select id="f-parent" name="parentId" class="field" data-initial="{{$e.ParentID}}"{{if .HasChildren}} disabled{{end}}>
+              {{if lt $e.ParentID 0}}<option value="{{$e.ParentID}}" selected>(unlisted folder)</option>{{end}}
+              <option value="0"{{if eq $e.ParentID 0}} selected{{end}}>(top level)</option>
+              {{range .Folders}}<option value="{{.ID}}"{{if eq .ID $e.ParentID}} selected{{end}}>{{.Label}}</option>{{end}}
+            </select>
+            <p class="hint">{{if .HasChildren}}Folders with contents cannot be moved here.{{else}}Moving {{if $isFile}}the file{{else}}the folder{{end}} moves its object in the bucket; its id and link stay the same.{{end}}</p></div>
           {{if $isFile}}
             <div><label class="label" for="f-version">Version / note</label><input id="f-version" name="version" value="{{$e.Version}}" class="field"><p class="hint">The [..] part of the file name, shown next to the name.</p></div>
             <div><label class="label" for="f-author">Author</label><input id="f-author" name="author" value="{{$e.Author}}" class="field"></div>
