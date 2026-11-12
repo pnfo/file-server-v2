@@ -39,6 +39,8 @@ type Secrets struct {
 	SessionSecret string `json:"sessionSecret"`
 	S3            Keys   `json:"s3"`
 	Signer        *Keys  `json:"signer"`
+	// APITokens are bearer tokens for /admin/api/* (api.go), by name: {"claude": "<random, 32+ chars>"}
+	APITokens map[string]string `json:"apiTokens"`
 }
 
 // appRoot holds config/ and data/ (APP_ROOT, default the working directory).

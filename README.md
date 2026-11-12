@@ -4,6 +4,8 @@ The download pages of [tipitaka.lk/library](https://tipitaka.lk/library/) and [t
 
 A Go server (`server/`, one static binary) with SQLite (`modernc.org/sqlite`, pure Go) and `html/template` pages. One process serves `/library` and `/cloud` and uses about 35 MB. Node is only needed on your machine, to build the browser assets (esbuild, Tailwind 4) and run the end-to-end test. Until 2026-10-05 this was an Astro/Node server; [docs/go-rewrite.md](docs/go-rewrite.md) describes the port and how it was checked page for page against the old server.
 
+Scripts and Claude sessions can view, add, replace and edit files with a token: [docs/api.md](docs/api.md) (`uv run tools/fsapi.py ...`).
+
 Design and reasoning: [docs/design.md](docs/design.md). UI parity rules and the download pitfalls it avoids: [docs/design-concerns.md](docs/design-concerns.md).
 
 Downloads never pass through the server. File pages link straight to **SigV2-signed** Spaces CDN URLs. Unlike SigV4, these keep working when Facebook and other apps append `fbclid`. Links expire in 6–12 h, so the only lasting links to a file are our own pages, and those count every download.
@@ -21,6 +23,7 @@ src/styles/        Tailwind CSS (global.css for the public pages, admin-bundle.c
 scripts/           build-assets.mjs (browser assets -> server/dist), gen-icons.mjs (server/icons.go from @mdi/js)
 deploy/nginx/      nginx config, included from the droplet's site config
 deploy.sh          build + upload + restart on the droplet
+tools/fsapi.py     command-line client for the token API (docs/api.md)
 test/e2e/          browser end-to-end suite
 ```
 

@@ -33,6 +33,8 @@ type SiteCtx struct {
 	Cfg     *SiteConfig
 	Store   *SiteStore
 	IsAdmin bool
+	// APIClient is the name of the API token the request came with ("" for the session cookie)
+	APIClient string
 }
 
 type statusWriter struct {
@@ -600,11 +602,38 @@ func buildFileView(s *SiteCtx, e *Entry, ua string) FileView {
 
 func serveAdmin(w http.ResponseWriter, r *http.Request, s *SiteCtx, rest []string) {
 	w.Header().Set("Cache-Control", "no-store")
+	isLogin := len(rest) > 0 && rest[0] == "login"
+	isAPI := len(rest) > 0 && rest[0] == "api"
+	if tok, present := bearerToken(r); present {
+		// token requests: the API only, never a cookie fallback; failures share the login rate limit
+		ip := clientKey(r)
+		if !isAPI {
+			writeJSON(w, 403, map[string]string{"error": "tokens work only for /admin/api/*"})
+			return
+		}
+		if !loginAllowed(ip) {
+			writeJSON(w, 429, map[string]string{"error": "too many failed attempts - try again later"})
+			return
+		}
+		name := apiTokenName(tok)
+		recordLogin(ip, name != "")
+		if name == "" {
+			writeJSON(w, 401, map[string]string{"error": "invalid token"})
+			return
+		}
+		s.IsAdmin, s.APIClient = true, name
+		if len(rest) == 2 && r.Method == http.MethodGet {
+			adminAPIGet(w, r, s, rest[1])
+		} else if len(rest) == 2 && r.Method == http.MethodPost {
+			adminAPI(w, r, s, rest[1])
+		} else {
+			writeJSON(w, 404, map[string]string{"error": "not found"})
+		}
+		return
+	}
 	if c, err := r.Cookie(sessionCookie); err == nil {
 		s.IsAdmin = verifySession(c.Value)
 	}
-	isLogin := len(rest) > 0 && rest[0] == "login"
-	isAPI := len(rest) > 0 && rest[0] == "api"
 	if !s.IsAdmin && !isLogin {
 		if isAPI {
 			writeJSON(w, 401, map[string]string{"error": "login required"})
@@ -634,6 +663,8 @@ func serveAdmin(w http.ResponseWriter, r *http.Request, s *SiteCtx, rest []strin
 		adminEdit(w, r, s, rest[1])
 	case rest[0] == "api" && len(rest) == 2 && r.Method == http.MethodPost:
 		adminAPI(w, r, s, rest[1])
+	case rest[0] == "api" && len(rest) == 2 && r.Method == http.MethodGet:
+		adminAPIGet(w, r, s, rest[1])
 	default:
 		notFoundPage(w)
 	}
@@ -875,9 +906,15 @@ func adminAPI(w http.ResponseWriter, r *http.Request, s *SiteCtx, action string)
 	case "publish":
 		res, err = st.SaveMeta(id, body{"isPublished": b.truthy("isPublished")})
 	case "delete":
-		if err = st.DeleteEntry(id); err == nil {
+		if s.APIClient != "" {
+			res, err = st.apiDelete(id)
+		} else if err = st.DeleteEntry(id); err == nil {
 			res = map[string]bool{"ok": true}
 		}
+	case "replace-url":
+		res, err = st.StartReplace(id, fileNameOf(b))
+	case "replace-commit":
+		res, err = st.CommitReplace(id, b)
 	case "folder":
 		res, err = st.CreateFolder(b.intOr0("parentId"), b["name"])
 	case "upload-url":
@@ -943,6 +980,11 @@ func adminAPI(w http.ResponseWriter, r *http.Request, s *SiteCtx, action string)
 		writeJSON(w, 404, map[string]string{"error": "unknown action " + action})
 		return
 	}
+	logAPI(s, r, action)
+	writeAPIResult(w, action, res, err)
+}
+
+func writeAPIResult(w http.ResponseWriter, action string, res any, err error) {
 	if err != nil {
 		var ae *AdminError
 		if errors.As(err, &ae) {
