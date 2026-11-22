@@ -221,7 +221,7 @@ func (s *SiteStore) StartReplace(id int, fileName string) (orderedMap, error) {
 		}
 	}
 	contentType := firstNonEmpty(getTypeInfo(e.Type).Mime, "application/octet-stream")
-	u, err := s3PresignPut(s.objectKey(e.S3Key), contentType, false)
+	u, err := s3PresignPut(s.objectKey(e.S3Key), contentType)
 	if err != nil {
 		return nil, err
 	}
@@ -279,14 +279,14 @@ func (s *SiteStore) apiDelete(id int) (orderedMap, error) {
 func s3Copy(fromKey, toKey string) error {
 	ctx, cancel := s3ctx()
 	defer cancel()
-	_, err := s3().CopyObject(ctx, minio.CopyDestOptions{Bucket: bucket, Object: toKey}, minio.CopySrcOptions{Bucket: bucket, Object: fromKey})
+	_, err := s3().CopyObject(ctx, minio.CopyDestOptions{Bucket: bucketFor(toKey), Object: toKey}, minio.CopySrcOptions{Bucket: bucketFor(fromKey), Object: fromKey})
 	return err
 }
 
 func s3Size(key string) (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
-	info, err := s3().StatObject(ctx, bucket, key, minio.StatObjectOptions{})
+	info, err := s3().StatObject(ctx, bucketFor(key), key, minio.StatObjectOptions{})
 	if err != nil {
 		return 0, err
 	}

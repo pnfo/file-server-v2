@@ -1,5 +1,6 @@
-// File server for tipitaka.lk/library and tipitaka.lk/cloud: listings, file pages with SigV2-signed download
-// links, download counts, search and the admin. One process serves both sites; each has its own SQLite file.
+// File server for tipitaka.lk/library and tipitaka.lk/cloud: listings, file pages with download links (signed
+// for the library, public for cloud), download counts, search and the admin. One process serves both sites;
+// each has its own SQLite file.
 // Port of the Astro/Node server (docs/go-rewrite.md); the HTML, URLs and data are unchanged.
 //
 //	file_server [serve]                                   HOST/PORT from the environment (default 127.0.0.1:4321)
@@ -122,7 +123,7 @@ func syncCmd(args []string) {
 	}
 }
 
-// backupCmd snapshots each site DB, uploads it to <site>/backups/ (private) and keeps the last 14 locally.
+// backupCmd snapshots each site DB, uploads it to the private bucket (dbBackupKey) and keeps the last 14 locally.
 func backupCmd() {
 	stamp := time.Now().UTC().Format("2006-01-02")
 	dir := filepath.Join(appRoot, "data", "backups")
@@ -143,7 +144,7 @@ func backupCmd() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if err := s3PutObject(fmt.Sprintf("%s/backups/%s-%s.db", getSiteConfig(site).S3RootFolder, site, stamp), b, "application/vnd.sqlite3"); err != nil {
+		if err := s3PutObject(dbBackupKey(getSiteConfig(site), fmt.Sprintf("%s-%s.db", site, stamp)), b, "application/vnd.sqlite3"); err != nil {
 			log.Fatalf("[%s] upload: %v", site, err)
 		}
 		entries, _ := os.ReadDir(dir)

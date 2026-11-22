@@ -52,7 +52,7 @@
         <section class="card" id="previews" data-id="{{$e.ID}}">
           <div class="card-head"><h2 class="card-title">Preview pages</h2><span id="pdf-status" class="text-[13px] text-text-muted"></span></div>
           <div class="p-5 flex flex-col gap-4">
-            <p class="text-[13px] text-text-muted">Pages are rendered in this browser with pdf.js and uploaded as public JPEGs. Needs bucket CORS (Bucket page).</p>
+            <p class="text-[13px] text-text-muted">Pages are rendered in this browser with pdf.js and uploaded as public JPEGs. Needs the bucket CORS rule (README, "Bucket CORS").</p>
             <div class="flex flex-wrap items-end gap-2">
               <div><label class="label" for="f-pages">Pages</label><input id="f-pages" name="pages" class="field w-44" placeholder="e.g. 1, 12" value="{{.PagesValue}}"></div>
               <button class="btn" data-render>{{icon "eye"}}Render</button>

@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"log"
 	"math"
-	"math/rand/v2"
-	"os"
 	"sort"
 	"strconv"
 	"strings"
@@ -17,14 +15,6 @@ import (
 const (
 	searchMaxResults = 50
 	searchMaxTerms   = 300
-)
-
-var (
-	dropletBase  = strings.TrimSuffix(os.Getenv("DROPLET_BASE"), "/") // e.g. https://tipitaka.lk/fs-dl
-	dropletShare = func() float64 {
-		n, _ := strconv.ParseFloat(os.Getenv("DROPLET_SHARE"), 64)
-		return min(100, max(0, n))
-	}()
 )
 
 // byName: folders first, then Sinhala collation, then id.
@@ -308,15 +298,12 @@ func (s *SiteStore) Hit(id int, clientKey string) bool {
 }
 
 func (s *SiteStore) Link(e *Entry, mode LinkMode) SignedLink {
-	k := getSecrets().Signer
-	// DROPLET_SHARE % of links go through the droplet's nginx proxy instead of the CDN, to use the droplet
-	// transfer pool (Spaces -> Droplet in SGP1 is free) and keep Spaces egress under its allowance.
-	base := ""
-	if dropletBase != "" && rand.Float64()*100 < dropletShare {
-		base = dropletBase
+	key := s.Cfg.S3RootFolder + "/" + e.S3Key
+	if !s.Cfg.Signed {
+		return publicLink(s.Cfg.PublicHost, key, mode)
 	}
-	return signLink(SignInput{ObjectKey: s.Cfg.S3RootFolder + "/" + e.S3Key, FileName: saveAsName(e), Mode: mode,
-		AccessKeyID: k.AccessKeyID, SecretAccessKey: k.SecretAccessKey, NowMs: time.Now().UnixMilli(), BaseURL: base})
+	return signLink(SignInput{Host: s.Cfg.PublicHost, ObjectKey: key, FileName: saveAsName(e), Mode: mode,
+		Secret: getSecrets().LinkSecret, NowMs: time.Now().UnixMilli()})
 }
 
 type Preview struct {
@@ -329,7 +316,7 @@ func (s *SiteStore) Previews(e *Entry) []Preview {
 	if e.Type != "pdf" {
 		return nil
 	}
-	base := "https://" + cdnHost + "/" + s.Cfg.S3RootFolder
+	base := "https://" + s.Cfg.PublicHost + "/" + s.Cfg.S3RootFolder
 	var out []Preview
 	if len(e.PreviewPages) > 0 {
 		for i, p := range e.PreviewPages {

@@ -10,11 +10,12 @@
   "scripts": {
     "build": "node scripts/build-assets.mjs && go build -C server -o bin/file_server .",
     "dev": "npm run build && server/bin/file_server",
-    "test": "go test -C server ./...",
+    "test": "go test -C server ./... && node worker/test.mjs",
     "test:e2e": "node test/e2e/admin.e2e.mjs",
     "check": "tsc --noEmit",
     "icons": "node scripts/gen-icons.mjs",
-    "deploy": "./deploy.sh"
+    "deploy": "./deploy.sh",
+    "deploy:worker": "cd worker && npx wrangler deploy"
   },
   "devDependencies": {
     "@aws-sdk/client-s3": "^3.1144.0",

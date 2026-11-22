@@ -1,7 +1,7 @@
 package main
 
-// Verifies Spaces still accepts our SigV2 links (and still ignores appended params like fbclid).
-// If DigitalOcean ever drops SigV2 this fails loudly; switch signLink to a fallback from design §2.1.
+// Verifies a download link of each site really serves bytes (Range 0-0 -> 206) and still does when a webview
+// appends a param like fbclid: the Worker for signed sites, the public bucket domain for the others.
 
 import (
 	"bufio"
@@ -68,7 +68,11 @@ func checkSigner(s *SiteStore) SignerCheck {
 		var err1, err2 error
 		wg.Add(2)
 		go func() { defer wg.Done(); status, err1 = get(link.URL) }()
-		go func() { defer wg.Done(); withFbclid, err2 = get(link.URL + "&fbclid=selfcheck") }()
+		sep := "?"
+		if strings.Contains(link.URL, "?") {
+			sep = "&"
+		}
+		go func() { defer wg.Done(); withFbclid, err2 = get(link.URL + sep + "fbclid=selfcheck") }()
 		wg.Wait()
 		if err1 != nil || err2 != nil {
 			e := err1

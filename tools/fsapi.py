@@ -99,7 +99,7 @@ def make_previews(entry_id: int, path: Path, pages: list[int] | None = None):
         pg = doc[p - 1]
         z = 1500 / max(pg.rect.height, 1)
         jpg = pg.get_pixmap(matrix=pymupdf.Matrix(z, z)).tobytes("jpeg", jpg_quality=80)
-        r = requests.put(url, data=jpg, headers={"Content-Type": "image/jpeg", "x-amz-acl": "public-read"}, timeout=120)
+        r = requests.put(url, data=jpg, headers={"Content-Type": "image/jpeg"}, timeout=120)
         r.raise_for_status()
     doc.close()
     return api("previews", id=entry_id, pages=pages, numPages=n)

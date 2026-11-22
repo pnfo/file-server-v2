@@ -10,8 +10,6 @@ User=janaka
 WorkingDirectory=/home/janaka/www/file_server
 ExecStart=/home/janaka/www/file_server/file_server serve
 Environment=HOST=127.0.0.1 PORT=8090 LOG_REQUESTS=0
-# README: serving part of the downloads from the droplet
-Environment=DROPLET_BASE=https://tipitaka.lk/fs-dl DROPLET_SHARE=40
 # soft limit for the Go GC (it collects harder near it), hard limit for the kernel
 Environment=GOMEMLIMIT=60MiB
 MemoryMax=150M

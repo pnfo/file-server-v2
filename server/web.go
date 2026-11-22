@@ -533,8 +533,8 @@ func topNav(s *SiteCtx, parents []*Entry, current, currentIcon string, shareID i
 
 type Stat struct{ K, V string }
 
-// FileView is the only screen that starts a download (design §5.2). Every action is a plain link to a
-// SigV2-signed CDN URL: no interstitial page and no redirect, so Back always returns here.
+// FileView is the only screen that starts a download (design §5.2). Every action is a plain link to the file
+// (signed for the library, public for cloud): no interstitial page and no redirect, so Back always returns here.
 type FileView struct {
 	S                        *SiteCtx
 	E                        *Entry
@@ -949,32 +949,6 @@ func adminAPI(w http.ResponseWriter, r *http.Request, s *SiteCtx, action string)
 		}
 		if err == nil {
 			res, err = syncFromS3(st, b.truthy("dryRun"), counts)
-		}
-	case "cors-get":
-		res = map[string]any{"rules": s3GetCors()}
-	case "cors-set":
-		// add to the existing origins: setting it from prod must not drop http://localhost:4321 (dev, e2e) or vice versa
-		var origins []string
-		for _, rule := range s3GetCors() {
-			origins = append(origins, rule.AllowedOrigins...)
-		}
-		origins = append(origins, "https://tipitaka.lk", requestOrigin(r))
-		if extra, ok := b["origins"].([]any); ok {
-			for _, o := range extra {
-				if s, ok := o.(string); ok {
-					origins = append(origins, s)
-				}
-			}
-		}
-		valid := regexp.MustCompile(`^https?://[^/]+$`)
-		var keep []string
-		for _, o := range origins {
-			if valid.MatchString(o) && !slices.Contains(keep, o) {
-				keep = append(keep, o)
-			}
-		}
-		if err = s3PutCors(keep); err == nil {
-			res = map[string]any{"rules": s3GetCors()}
 		}
 	default:
 		writeJSON(w, 404, map[string]string{"error": "unknown action " + action})

@@ -1,6 +1,6 @@
 # File server v2
 
-The download pages of [tipitaka.lk/library](https://tipitaka.lk/library/) and [tipitaka.lk/cloud](https://tipitaka.lk/cloud/), with an admin for the files in the `tipitaka` Spaces bucket.
+The download pages of [tipitaka.lk/library](https://tipitaka.lk/library/) and [tipitaka.lk/cloud](https://tipitaka.lk/cloud/), with an admin for the files in two Cloudflare R2 buckets (`tipitaka-library`, private; `tipitaka-public`, public). Until 2026-11 the files were in a DigitalOcean Spaces bucket.
 
 A Go server (`server/`, one static binary) with SQLite (`modernc.org/sqlite`, pure Go) and `html/template` pages. One process serves `/library` and `/cloud` and uses about 35 MB. Node is only needed on your machine, to build the browser assets (esbuild, Tailwind 4) and run the end-to-end test. Until 2026-10-05 this was an Astro/Node server; [docs/go-rewrite.md](docs/go-rewrite.md) describes the port and how it was checked page for page against the old server.
 
@@ -8,16 +8,21 @@ Scripts and Claude sessions can view, add, replace and edit files with a token: 
 
 Design and reasoning: [docs/design.md](docs/design.md). UI parity rules and the download pitfalls it avoids: [docs/design-concerns.md](docs/design-concerns.md).
 
-Downloads never pass through the server. File pages link straight to **SigV2-signed** Spaces CDN URLs. Unlike SigV4, these keep working when Facebook and other apps append `fbclid`. Links expire in 6–12 h, so the only lasting links to a file are our own pages, and those count every download.
+Downloads never pass through the server, and R2 charges nothing for egress.
+
+- **Library** files are private. File pages link to **signed** URLs on `library.tipitaka.lk`, where a small Worker ([worker/](worker/src/index.ts)) checks the signature and streams the object. Only the path, the expiry and the saved filename are signed, so the links keep working when Facebook and other apps append `fbclid`. Links expire in 6–12 h, so the only lasting links to a book are our own pages, and those count every download.
+- **Cloud** files are public: plain permanent URLs on `cdn.tipitaka.lk`, the public bucket's own domain (no Worker). A saved file keeps its key name (`name{id}.mp3`), and downloads that other sites link to directly are not counted.
 
 ## Layout
 
 ```
 config/            library.json, cloud.json (site settings), secrets.json (git-ignored, see secrets.example.json)
 data/              <site>.db SQLite files (git-ignored)
-server/            Go server: web.go (routes), store.go (in-memory index + search), sign.go (SigV2 links),
+server/            Go server: web.go (routes), store.go (in-memory index + search), sign.go (download links),
                    admin.go, sync.go, s3.go, db.go, collate.go (Sinhala sort order), templates/ (pages)
-server/testdata/   expected outputs captured from the old Node code (formatting, sanitizer, signing, sort order)
+server/testdata/   expected outputs captured from the old Node code (formatting, sanitizer, sort order);
+                   link_vectors.json: signed links, checked by the Go tests and the Worker test
+worker/            Cloudflare Worker for library.tipitaka.lk (src/index.ts), its test (test.mjs), wrangler.jsonc
 src/client/        browser code: site.ts (public pages), admin.ts (loads pdf.js on demand), lightbox.ts
 src/styles/        Tailwind CSS (global.css for the public pages, admin-bundle.css for the admin)
 scripts/           build-assets.mjs (browser assets -> server/dist), gen-icons.mjs (server/icons.go from @mdi/js)
@@ -66,8 +71,10 @@ It needs `npm run build`, `config/secrets.json`, Google Chrome (or `CHROME=/path
 |---|---|
 | `adminPassword` | `/<site>/admin/login` |
 | `sessionSecret` | signs the admin session cookie (long random string) |
-| `s3` | read/write Spaces key: sync, admin uploads/renames/moves/deletes, backups |
-| `signer` | **read-only** Spaces key for public download links. If it's missing, `s3` is used and a warning is logged. Create a key limited to read on the `tipitaka` bucket. |
+| `s3` | R2 API token (Object Read & Write on both buckets) and `endpoint` (`<account id>.r2.cloudflarestorage.com`): sync, admin uploads/renames/moves/deletes, backups |
+| `linkSecret` | signs library download links. The Worker's `LINK_SECRET` must hold the same value. |
+
+`config/library.json` and `config/cloud.json` name each site's `bucket` and `publicHost`, and say whether its links are `signed`.
 
 Environment (set in [server/file_server.service](server/file_server.service) on the droplet):
 
@@ -79,7 +86,6 @@ Environment (set in [server/file_server.service](server/file_server.service) on 
 | `SITE_ALIASES` | – | e.g. `library-v2:library,cloud-v2:cloud` serves the same data under extra prefixes (noindex), for testing a build side by side |
 | `LEGACY_DOWNLOAD_MODE` | – | `redirect-page`: browser navigations to `/<id>/download` go to the file page instead of the file |
 | `LOG_REQUESTS` | 1 (0 on the droplet) | per-request log line; nginx already logs requests in production |
-| `DROPLET_SHARE`, `DROPLET_BASE` | 0, – | % of download links served through the droplet (see below); 40 in production |
 | `GOMEMLIMIT` | – | 60MiB on the droplet: the Go GC collects harder near it |
 
 Search uses [`github.com/pnfo/singlish-search`](https://github.com/pnfo/singlish-search) (Go port, same results as the JS package). To update it: `go get -C server github.com/pnfo/singlish-search@vX.Y.Z`, then `npm test` and `./deploy.sh`.
@@ -97,19 +103,25 @@ This runs the Go tests, builds the assets and a linux/amd64 binary, and uploads 
 **Server** (`ssh tipitaka.lk`, since 2026-10-04): droplet `new-tipitaka.lk-1gb-sgp1`, Ubuntu 26.04, SGP1 (VPC `default-sgp1`), 1 GB RAM + 2 GB swap, nginx 1.28. It sits behind the Reserved IP `157.230.192.72` that DNS points to, so moving a server means reassigning that IP. It also runs the main tipitaka.lk site and the other Go services, each a systemd unit with its directory in `/var/www/html` (`~/www`). The firewall allows only 22/80/443.
 - **nginx:** `/etc/nginx/sites-available/tipitaka.lk.conf` includes two files from `~/www/file_server/nginx/`:
   - [file-server-prod.conf](deploy/nginx/file-server-prod.conf): `/library`, `/cloud`, the Android-app rewrite, the blexbot deny;
-  - [file-server-go.conf](deploy/nginx/file-server-go.conf): `/fs-assets/`, `/fs-static/`, `/fs-dl/`.
-- **Backups:** `crontab -l` runs `./file_server backup` at 03:00 UTC (log: `~/backup.log`). Snapshots go to `<site>/backups/` in the bucket (private); the last 14 stay in `data/backups/`.
+  - [file-server-go.conf](deploy/nginx/file-server-go.conf): `/fs-assets/`, `/fs-static/`.
+- **Backups:** `crontab -l` runs `./file_server backup` at 03:00 UTC (log: `~/backup.log`). Snapshots go to the private bucket (`library/backups/`, `cloud-db-backups/`); the last 14 stay in `data/backups/`.
 - **TLS:** certbot (systemd timer) renews `tipitaka.lk` and `open.tipitaka.lk`.
-- **Bucket CORS:** browser uploads and PDF previews need it. Admin → Bucket → **Check**, then **Set CORS rule**, which adds the current origin to the rule (keep `http://localhost:4321` for dev and the end-to-end test).
+- **Bucket CORS:** browser uploads and PDF previews need it. Both buckets allow GET/PUT/HEAD from `https://tipitaka.lk` and `http://localhost:4321` (dev and the end-to-end test); `tipitaka-public` also allows GET/HEAD from any origin, for the audio timing files the apps fetch. The rules were set with the Cloudflare API (R2 → bucket → Settings → CORS policy in the dashboard). The `s3` token (Object Read & Write) cannot read or change them, so the admin has no CORS button.
 
-## Serving part of the downloads from the droplet
+## Cloudflare
 
-Spaces includes 1 TiB of egress a month and charges $0.01/GiB above that; in September 2026 it sent about 1,750 GiB. The droplets have their own transfer pool (1,000 GiB per $6 droplet, pooled across the team: 2,000 GiB, of which they used about 305 GiB), and [transfer from Spaces in SGP1 to Droplets in SGP1 is free](https://docs.digitalocean.com/platform/billing/bandwidth/). Serving a share of the links through the droplet therefore moves that traffic to the droplet pool.
+DNS for `tipitaka.lk` is on Cloudflare (free plan). Every record of the droplet is **DNS only**; just the two file hostnames go through Cloudflare.
 
-- **How it works:** the `/fs-dl/` block in `file-server-go.conf` forwards the signed path and query to Spaces unchanged. It resolves Spaces through the VPC resolver `10.130.255.254`, which answers with the private endpoint. Tested 2026-10-04 with a real Sinhala key: 206, also with `fbclid`; a tampered signature gets 403. After changing the block, check a proxied link with `%`-escapes in its key, not just an ASCII one. Links stay signed and expire as usual, and the file server never handles the bytes.
-- **Setting:** `DROPLET_SHARE=40` in `server/file_server.service` (on since 2026-10-04). About 42% removes the Spaces overage; more saves nothing. Check the droplet transfer on the Billing page.
-- **Limits:** each proxied download uses two nginx connections; the droplet has `worker_connections 4096`, so about 2,000 can run at once.
-- **Off:** set `DROPLET_SHARE=0` in the unit, install it and restart (see Deploying).
+| hostname | serves | how |
+|---|---|---|
+| `library.tipitaka.lk` | bucket `tipitaka-library`: `library/…`, and the DB snapshots of both sites | the Worker in [worker/](worker/src/index.ts): signed links; `library/previews/` and `library/thumbs/` are public; snapshots are never served |
+| `cdn.tipitaka.lk` | bucket `tipitaka-public`: `cloud/…`, and the BJT audio in `bjt-audio/…` | the bucket's public custom domain |
+
+- **Worker:** `npm run deploy:worker` (wrangler, needs `CLOUDFLARE_API_TOKEN`). Its secret: `cd worker && npx wrangler secret put LINK_SECRET`, the same value as `linkSecret` in `config/secrets.json`. To change the secret, set it in both places; links signed with the old one stop working at once.
+- **Free plan limit:** 100,000 Worker requests a day (every library download and preview image is one; a PDF opened in a browser viewer can be several Range requests). Past the limit requests fail until 00:00 UTC. Workers → the Worker → Metrics shows the daily count; the paid plan is $5/month.
+- **Save to device on cloud:** `cdn.tipitaka.lk` has one response-header Transform Rule: when the query string contains `dl=1`, set `Content-Disposition: attachment`. The file server adds `?dl=1` to cloud download buttons.
+- **Snapshots:** `library/backups/` and `cloud-db-backups/` are in the private bucket. Nothing under `cloud/` is private: copies made by `replace` and token `rm` (`cloud/backups/…`) are as public as the files they copy.
+- **Health:** `/<site>/api/health` fetches one byte of a real link of the site, with and without `fbclid`, and answers 503 if either fails.
 
 ## Notes
 

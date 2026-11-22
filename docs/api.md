@@ -30,7 +30,7 @@ The token comes from `FS_API_TOKEN`, or from `apiTokens.claude` in `config/secre
 - **Rate limit.** A wrong token counts as a failed login. After 5 failures, that IP is blocked for 15 minutes.
 - **Backups.** `replace` copies the current object to `<site>/backups/replaced/<time>-<file name>` first. A token `rm` of a file copies it to `backups/deleted/`. Sync ignores `backups/`. Deletes from the admin page don't make a backup.
 - **Audit log.** Every token write is logged as `api <site> [<token name>] <action> <ip>` (`journalctl -u file_server`).
-- **CDN cache.** After a `replace`, the CDN can serve the old bytes until the current link window ends (6–12 h). Page metadata changes at once.
+- **Cache.** After a `replace`, a library file changes at once. A cloud file keeps its public URL, so Cloudflare and browsers can serve the old bytes until their cached copy expires; purge the URL in the Cloudflare dashboard if it matters. Page metadata changes at once.
 
 ## HTTP endpoints
 

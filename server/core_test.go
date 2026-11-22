@@ -3,7 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/hmac"
-	"crypto/sha1"
+	"crypto/sha256"
 	"database/sql"
 	"encoding/base64"
 	"encoding/json"
@@ -159,30 +159,62 @@ func TestNamingMatchesJS(t *testing.T) {
 	}
 }
 
-func TestSignLinkMatchesJS(t *testing.T) {
-	var signs []struct {
-		ObjectKey, FileName, Mode, BaseURL string
-		Out                                SignedLink
+const (
+	testLinkHost   = "library.tipitaka.lk"
+	testLinkSecret = "SECRET"
+)
+
+// testdata/link_vectors.json is also checked by the Worker (worker/test.mjs), which recomputes every signature
+// with its own code. UPDATE_VECTORS=1 rewrites the "out" values after a deliberate change to the link format.
+func TestSignLinkVectors(t *testing.T) {
+	const file = "testdata/link_vectors.json"
+	var v struct {
+		Host   string `json:"host"`
+		Secret string `json:"secret"`
+		NowMs  int64  `json:"nowMs"`
+		Links  []struct {
+			ObjectKey string     `json:"objectKey"`
+			FileName  string     `json:"fileName"`
+			Mode      string     `json:"mode"`
+			Out       SignedLink `json:"out"`
+		} `json:"links"`
 	}
-	json.Unmarshal(loadVectors(t)["sign"], &signs)
-	now := time.Date(2026, 10, 1, 7, 30, 0, 0, time.UTC).UnixMilli()
-	for _, s := range signs {
-		got := signLink(SignInput{ObjectKey: s.ObjectKey, FileName: s.FileName, Mode: LinkMode(s.Mode), AccessKeyID: "AK/+=",
-			SecretAccessKey: "SECRET", NowMs: now, BaseURL: s.BaseURL})
-		if got != s.Out {
-			t.Errorf("signLink(%s)\n got %+v\nwant %+v", s.ObjectKey, got, s.Out)
+	b, err := os.ReadFile(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := json.Unmarshal(b, &v); err != nil || len(v.Links) == 0 {
+		t.Fatalf("%s: %v", file, err)
+	}
+	update := os.Getenv("UPDATE_VECTORS") != ""
+	for i, l := range v.Links {
+		got := signLink(SignInput{Host: v.Host, ObjectKey: l.ObjectKey, FileName: l.FileName, Mode: LinkMode(l.Mode), Secret: v.Secret, NowMs: v.NowMs})
+		if update {
+			v.Links[i].Out = got
+		} else if got != l.Out {
+			t.Errorf("signLink(%s)\n got %+v\nwant %+v", l.ObjectKey, got, l.Out)
+		}
+	}
+	if update {
+		var buf bytes.Buffer
+		enc := json.NewEncoder(&buf)
+		enc.SetEscapeHTML(false)
+		enc.SetIndent("", " ")
+		enc.Encode(v)
+		if err := os.WriteFile(file, buf.Bytes(), 0o644); err != nil {
+			t.Fatal(err)
 		}
 	}
 }
 
 func TestSignLinkSignature(t *testing.T) {
 	nowMs := time.Date(2026, 10, 1, 0, 0, 0, 0, time.UTC).UnixMilli()
-	l := signLink(SignInput{ObjectKey: "library/අ{1}/x[v]{2}.pdf", FileName: "x - v.pdf", Mode: "inline", AccessKeyID: "AK", SecretAccessKey: "SECRET", NowMs: nowMs})
+	l := signLink(SignInput{Host: testLinkHost, ObjectKey: "library/අ{1}/x[v]{2}.pdf", FileName: "x - v.pdf", Mode: "inline", Secret: testLinkSecret, NowMs: nowMs})
 	u, err := url.Parse(l.URL)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if u.Host != cdnHost {
+	if u.Host != testLinkHost {
 		t.Errorf("host %s", u.Host)
 	}
 	if p, _ := url.PathUnescape(u.EscapedPath()); p != "/library/අ{1}/x[v]{2}.pdf" {
@@ -192,11 +224,45 @@ func TestSignLinkSignature(t *testing.T) {
 	if cd != `inline; filename="file.pdf"; filename*=UTF-8''x%20-%20v.pdf` {
 		t.Errorf("disposition %s", cd)
 	}
-	sts := "GET\n\n\n" + u.Query().Get("Expires") + "\n/tipitaka" + u.EscapedPath() + "?response-content-disposition=" + cd
-	m := hmac.New(sha1.New, []byte("SECRET"))
+	sts := "GET\n" + u.Query().Get("Expires") + "\n" + u.EscapedPath() + "\n" + cd
+	m := hmac.New(sha256.New, []byte(testLinkSecret))
 	m.Write([]byte(sts))
-	if u.Query().Get("Signature") != base64.StdEncoding.EncodeToString(m.Sum(nil)) {
+	if u.Query().Get("Signature") != base64.RawURLEncoding.EncodeToString(m.Sum(nil)) {
 		t.Error("signature mismatch")
+	}
+	// a stream link has no Content-Disposition override
+	if s := signLink(SignInput{Host: testLinkHost, ObjectKey: "library/x{3}.m4a", FileName: "x.m4a", Mode: "stream", Secret: testLinkSecret, NowMs: nowMs}); strings.Contains(s.URL, "disposition") {
+		t.Errorf("stream link %s", s.URL)
+	}
+}
+
+func TestPublicLink(t *testing.T) {
+	l := publicLink("cdn.tipitaka.lk", "cloud/අ{1}/a b{2}.mp3", "stream")
+	if l.URL != "https://cdn.tipitaka.lk/cloud/%E0%B6%85%7B1%7D/a%20b%7B2%7D.mp3" || l.Expires != 0 {
+		t.Errorf("public link %+v", l)
+	}
+	if l := publicLink("cdn.tipitaka.lk", "cloud/x{3}.zip", "attachment"); l.URL != "https://cdn.tipitaka.lk/cloud/x%7B3%7D.zip?dl=1" {
+		t.Errorf("attachment link %+v", l)
+	}
+}
+
+func TestBucketFor(t *testing.T) {
+	siteConfigsMu.Lock()
+	old := siteConfigs
+	siteConfigs = map[string]*SiteConfig{
+		"library": {ID: "library", S3RootFolder: "library", Bucket: "priv", Signed: true},
+		"cloud":   {ID: "cloud", S3RootFolder: "cloud", Bucket: "pub"},
+	}
+	siteConfigsMu.Unlock()
+	t.Cleanup(func() { siteConfigsMu.Lock(); siteConfigs = old; siteConfigsMu.Unlock() })
+	for key, want := range map[string]string{"library/a{1}.pdf": "priv", "library/": "priv", "cloud/a{1}.mp3": "pub",
+		dbBackupKey(getSiteConfig("library"), "library-x.db"): "priv", dbBackupKey(getSiteConfig("cloud"), "cloud-x.db"): "priv"} {
+		if got := bucketFor(key); got != want {
+			t.Errorf("bucketFor(%s) = %s, want %s", key, got, want)
+		}
+	}
+	if k := dbBackupKey(getSiteConfig("cloud"), "cloud-x.db"); k != "cloud-db-backups/cloud-x.db" {
+		t.Errorf("cloud snapshot key %s", k)
 	}
 }
 
@@ -350,7 +416,7 @@ func testStore(t *testing.T) *SiteStore {
 	t.Helper()
 	appRoot = t.TempDir()
 	os.MkdirAll(filepath.Join(appRoot, "config"), 0o755)
-	os.WriteFile(filepath.Join(appRoot, "config", "library.json"), []byte(`{"fileTypeName":"පොත්","rootFolderName":"පුස්තකාලය","webUrlRoot":"https://tipitaka.lk/library/","s3RootFolder":"library"}`), 0o644)
+	os.WriteFile(filepath.Join(appRoot, "config", "library.json"), []byte(`{"fileTypeName":"පොත්","rootFolderName":"පුස්තකාලය","webUrlRoot":"https://tipitaka.lk/library/","s3RootFolder":"library","bucket":"tipitaka-library","publicHost":"library.tipitaka.lk","signed":true}`), 0o644)
 	siteConfigs = map[string]*SiteConfig{}
 	db, err := openDBFile(filepath.Join(appRoot, "t.db"))
 	if err != nil {
@@ -617,7 +683,7 @@ func TestStoreEditions(t *testing.T) {
 
 func TestEditionsOnPages(t *testing.T) {
 	s := editionStore(t)
-	os.WriteFile(filepath.Join(appRoot, "config", "secrets.json"), []byte(`{"s3":{},"signer":{}}`), 0o644)
+	os.WriteFile(filepath.Join(appRoot, "config", "secrets.json"), []byte(`{"s3":{},"linkSecret":"x"}`), 0o644)
 	loadTemplates()
 	if _, err := s.SetEditions([]int{2, 7, 9}, false); err != nil {
 		t.Fatal(err)

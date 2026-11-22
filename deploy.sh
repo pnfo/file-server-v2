@@ -26,6 +26,9 @@ ssh "$host" "test -f ~/$dir/config/secrets.json" || { echo "missing ~/$dir/confi
 # a broken secrets.json makes the server exit on its first request (a restart loop), so stop before switching binaries
 ssh "$host" "python3 -c 'import json,sys; json.load(open(sys.argv[1]))' ~/$dir/config/secrets.json" ||
   { echo "~/$dir/config/secrets.json on the server is not valid JSON - fix it and deploy again" >&2; exit 1; }
+# this build talks to Cloudflare R2: without the R2 endpoint and the link secret every download would break
+ssh "$host" "python3 -c 'import json,sys; s=json.load(open(sys.argv[1])); sys.exit(0 if s.get(\"linkSecret\") and s.get(\"s3\",{}).get(\"endpoint\") else 1)' ~/$dir/config/secrets.json" ||
+  { echo "~/$dir/config/secrets.json on the server has no linkSecret / s3.endpoint (see secrets.example.json) - nothing was switched" >&2; exit 1; }
 ssh "$host" "cd ~/$dir && { test -f file_server && cp file_server file_server.prev || true; } && mv file_server.new file_server && chmod +x file_server"
 
 echo "==> restart (sudo)"

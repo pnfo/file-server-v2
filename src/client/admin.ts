@@ -1,4 +1,4 @@
-// Admin page behaviour: JSON calls, uploads straight to Spaces, and pdf.js previews rendered in this browser.
+// Admin page behaviour: JSON calls, uploads straight to R2, and pdf.js previews rendered in this browser.
 import { initLightbox } from './lightbox.ts'
 
 const base = document.body.dataset.base || ''
@@ -23,7 +23,7 @@ function toast(msg: string, isError = false) {
 }
 const report = (data: unknown) => { const r = $('#report'); if (r) { r.classList.remove('hidden'); r.textContent = JSON.stringify(data, null, 2) } }
 
-// ---- buttons: theme, publish, delete, new folder, sync, cors -----------------------------------
+// ---- buttons: theme, publish, delete, new folder, sync -----------------------------------------
 document.addEventListener('click', async ev => {
   const t = ev.target as HTMLElement
   if (t.closest('[data-theme-toggle]')) {
@@ -31,7 +31,7 @@ document.addEventListener('click', async ev => {
     try { localStorage.setItem('fs-theme', dark ? 'dark' : 'light') } catch {}
     return
   }
-  const el = t.closest<HTMLElement>('[data-publish],[data-delete],[data-new-folder],[data-sync],[data-cors]')
+  const el = t.closest<HTMLElement>('[data-publish],[data-delete],[data-new-folder],[data-sync]')
   if (!el || el.hasAttribute('disabled')) return
   try {
     if (el.dataset.publish) {
@@ -54,10 +54,6 @@ document.addEventListener('click', async ev => {
       const r = await api('sync', { dryRun: el.dataset.sync === 'dry' })
       report(r)
       toast(`${r.dryRun ? 'Dry run: ' : ''}${r.added.length} added, ${r.updated.length} updated, ${r.missing.length} missing`)
-    } else if (el.dataset.cors) {
-      if (el.dataset.cors === 'set' && !confirm('Replace the bucket CORS rules to allow GET/PUT from this site? (Needed for browser uploads and previews.)')) return
-      el.setAttribute('disabled', '')
-      report(await api(el.dataset.cors === 'set' ? 'cors-set' : 'cors-get', {}))
     }
   } catch (err) {
     toast((err as Error).message, true)
@@ -130,7 +126,7 @@ const toJpeg = (c: HTMLCanvasElement) => new Promise<Blob>((ok, bad) => c.toBlob
 async function uploadPreviews(id: string | number, canvases: HTMLCanvasElement[], pages: number[], numPages: number) {
   const { urls } = await api<{ urls: string[] }>('preview-urls', { id, count: canvases.length })
   for (let i = 0; i < canvases.length; i++) {
-    const res = await fetch(urls[i], { method: 'PUT', body: await toJpeg(canvases[i]), headers: { 'Content-Type': 'image/jpeg', 'x-amz-acl': 'public-read' } })
+    const res = await fetch(urls[i], { method: 'PUT', body: await toJpeg(canvases[i]), headers: { 'Content-Type': 'image/jpeg' } })
     if (!res.ok) throw new Error(`preview upload failed (${res.status})`)
   }
   await api('previews', { id, pages, numPages })

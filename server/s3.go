@@ -12,17 +12,16 @@ import (
 	"time"
 
 	"github.com/minio/minio-go/v7"
-	"github.com/minio/minio-go/v7/pkg/cors"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 )
 
 var s3Client = sync.OnceValues(func() (*minio.Client, error) {
 	k := getSecrets().S3
-	return minio.New(s3Endpoint, &minio.Options{
+	return minio.New(k.Endpoint, &minio.Options{
 		Creds:        credentials.NewStaticV4(k.AccessKeyID, k.SecretAccessKey, ""),
 		Secure:       true,
-		Region:       "us-east-1",           // Spaces ignores it; set so the client doesn't look it up
-		BucketLookup: minio.BucketLookupDNS, // tipitaka.sgp1.digitaloceanspaces.com, as the AWS SDK used
+		Region:       "auto", // R2's only region; set so the client doesn't look it up
+		BucketLookup: minio.BucketLookupPath,
 	})
 })
 
@@ -48,7 +47,7 @@ func s3ListAll(prefix string) ([]S3Object, error) {
 	ctx, cancel := s3ctx()
 	defer cancel()
 	var out []S3Object
-	for o := range s3().ListObjects(ctx, bucket, minio.ListObjectsOptions{Prefix: prefix, Recursive: true}) {
+	for o := range s3().ListObjects(ctx, bucketFor(prefix), minio.ListObjectsOptions{Prefix: prefix, Recursive: true}) {
 		if o.Err != nil {
 			return nil, o.Err
 		}
@@ -59,17 +58,15 @@ func s3ListAll(prefix string) ([]S3Object, error) {
 	return out, nil
 }
 
-// s3PresignPut is a presigned PUT for browser uploads straight to Spaces (admin). Private unless publicRead.
-// Content-Type (and x-amz-acl) are signed, so the browser must send exactly these headers.
-func s3PresignPut(key, contentType string, publicRead bool) (string, error) {
+// s3PresignPut is a presigned PUT for browser uploads straight to R2 (admin). R2 has no object ACLs: who can
+// read an object is decided by its bucket and, for the private bucket, by the Worker.
+// Content-Type is signed, so the browser must send exactly this header.
+func s3PresignPut(key, contentType string) (string, error) {
 	h := http.Header{}
 	h.Set("Content-Type", contentType)
-	if publicRead {
-		h.Set("x-amz-acl", "public-read")
-	}
 	ctx, cancel := s3ctx()
 	defer cancel()
-	u, err := s3().PresignHeader(ctx, http.MethodPut, bucket, key, time.Hour, url.Values{}, h)
+	u, err := s3().PresignHeader(ctx, http.MethodPut, bucketFor(key), key, time.Hour, url.Values{}, h)
 	if err != nil {
 		return "", err
 	}
@@ -80,7 +77,7 @@ func s3PresignPut(key, contentType string, publicRead bool) (string, error) {
 func s3PresignGet(key string) (string, error) {
 	ctx, cancel := s3ctx()
 	defer cancel()
-	u, err := s3().PresignedGetObject(ctx, bucket, key, time.Hour, url.Values{})
+	u, err := s3().PresignedGetObject(ctx, bucketFor(key), key, time.Hour, url.Values{})
 	if err != nil {
 		return "", err
 	}
@@ -90,7 +87,7 @@ func s3PresignGet(key string) (string, error) {
 func s3Exists(key string) bool {
 	ctx, cancel := s3ctx()
 	defer cancel()
-	_, err := s3().StatObject(ctx, bucket, key, minio.StatObjectOptions{})
+	_, err := s3().StatObject(ctx, bucketFor(key), key, minio.StatObjectOptions{})
 	return err == nil
 }
 
@@ -103,55 +100,21 @@ func s3MoveObject(fromKey, toKey string) error {
 	}
 	ctx, cancel := s3ctx()
 	defer cancel()
-	// new objects are private by default, like the ACL: 'private' the Node server passed
-	if _, err := s3().CopyObject(ctx, minio.CopyDestOptions{Bucket: bucket, Object: toKey}, minio.CopySrcOptions{Bucket: bucket, Object: fromKey}); err != nil {
+	if _, err := s3().CopyObject(ctx, minio.CopyDestOptions{Bucket: bucketFor(toKey), Object: toKey}, minio.CopySrcOptions{Bucket: bucketFor(fromKey), Object: fromKey}); err != nil {
 		return err
 	}
-	return s3().RemoveObject(ctx, bucket, fromKey, minio.RemoveObjectOptions{})
+	return s3().RemoveObject(ctx, bucketFor(fromKey), fromKey, minio.RemoveObjectOptions{})
 }
 
 func s3Remove(key string) error {
 	ctx, cancel := s3ctx()
 	defer cancel()
-	return s3().RemoveObject(ctx, bucket, key, minio.RemoveObjectOptions{})
+	return s3().RemoveObject(ctx, bucketFor(key), key, minio.RemoveObjectOptions{})
 }
 
 func s3PutObject(key string, body []byte, contentType string) error {
 	ctx, cancel := s3ctx()
 	defer cancel()
-	_, err := s3().PutObject(ctx, bucket, key, bytes.NewReader(body), int64(len(body)), minio.PutObjectOptions{ContentType: contentType})
+	_, err := s3().PutObject(ctx, bucketFor(key), key, bytes.NewReader(body), int64(len(body)), minio.PutObjectOptions{ContentType: contentType})
 	return err
-}
-
-// CORSRule has the field names the AWS SDK returned, which the admin page shows and reads back.
-type CORSRule struct {
-	ID             string   `json:"ID,omitempty"`
-	AllowedHeaders []string `json:"AllowedHeaders,omitempty"`
-	AllowedMethods []string `json:"AllowedMethods"`
-	AllowedOrigins []string `json:"AllowedOrigins"`
-	ExposeHeaders  []string `json:"ExposeHeaders,omitempty"`
-	MaxAgeSeconds  int      `json:"MaxAgeSeconds,omitempty"`
-}
-
-func s3GetCors() []CORSRule {
-	ctx, cancel := s3ctx()
-	defer cancel()
-	cfg, err := s3().GetBucketCors(ctx, bucket)
-	out := []CORSRule{}
-	if err != nil || cfg == nil {
-		return out
-	}
-	for _, r := range cfg.CORSRules {
-		out = append(out, CORSRule{r.ID, r.AllowedHeader, r.AllowedMethod, r.AllowedOrigin, r.ExposeHeader, r.MaxAgeSeconds})
-	}
-	return out
-}
-
-func s3PutCors(origins []string) error {
-	ctx, cancel := s3ctx()
-	defer cancel()
-	return s3().SetBucketCors(ctx, bucket, cors.NewConfig([]cors.Rule{{
-		AllowedOrigin: origins, AllowedMethod: []string{"GET", "PUT", "HEAD"}, AllowedHeader: []string{"*"},
-		ExposeHeader: []string{"ETag", "Content-Length", "Content-Range", "Accept-Ranges"}, MaxAgeSeconds: 3600,
-	}}))
 }

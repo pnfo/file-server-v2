@@ -10,5 +10,5 @@
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true
   },
-  "include": ["src/client"]
+  "include": ["src/client", "worker/src"]
 }

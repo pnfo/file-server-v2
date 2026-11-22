@@ -4,6 +4,7 @@
 **Status:** In production since 2026-10-04 (this repo; see [README](../README.md)). Written while it was being built in `astro-server/` of the old [pnfo/file-server-new](https://github.com/pnfo/file-server-new) repo, so paths and plans below are from that time.
 **Implementation:** since 2026-10-05 the server is written in Go ([go-rewrite.md](go-rewrite.md)): same behaviour, URLs and data. Read "Node", "Astro", "PM2" and the `src/lib/*.ts` / `.astro` paths below as the Go server and its files in `server/`.
 **Replaces:** the Nuxt 3 app (pnfo/file-server-new) and an earlier unfinished Astro + Vue rewrite
+**Storage:** since 2026-11 the files are in Cloudflare R2, not Spaces: the library behind a Worker that checks signed links (the "fallback 2" of §2.1), cloud in a public bucket. The SigV2 scheme, the Spaces CDN and the droplet download proxy described below are history; the [README](../README.md) describes what runs now.
 **Read with:** `design-concerns.md`. Its UI parity rules (concerns 1–12 and §9 rules 2–5, 7) still apply. This document replaces its §10 (downloads) and drops the Vue-island and server-side PDF rendering parts.
 
 ---

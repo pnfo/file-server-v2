@@ -2,9 +2,9 @@
 import fs from 'node:fs'
 import { HeadObjectCommand, ListObjectsV2Command, S3Client } from '@aws-sdk/client-s3'
 
-const BUCKET = 'tipitaka'
-const { s3: credentials } = JSON.parse(fs.readFileSync(new URL('../../config/secrets.json', import.meta.url), 'utf-8'))
-const client = new S3Client({ endpoint: 'https://sgp1.digitaloceanspaces.com', region: 'us-east-1', credentials })
+const BUCKET = 'tipitaka-library' // config/library.json
+const { s3: { endpoint, ...credentials } } = JSON.parse(fs.readFileSync(new URL('../../config/secrets.json', import.meta.url), 'utf-8'))
+const client = new S3Client({ endpoint: `https://${endpoint}`, region: 'auto', forcePathStyle: true, credentials })
 
 export async function exists(key) {
   try { await client.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key })); return true } catch { return false }

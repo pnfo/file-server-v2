@@ -82,7 +82,7 @@
 </div>
 {{end}}{{end}}
 
-{{/* The only screen that starts a download (design §5.2). Every action is a plain link to a SigV2-signed CDN URL:
+{{/* The only screen that starts a download (design §5.2). Every action is a plain link to the file (signed for the library, public for cloud):
    no interstitial page and no redirect, so Back always returns here. */}}
 {{define "fileView"}}{{$f := .}}{{$e := .E}}{{$btn := "si w-full sm:w-auto py-2.5 px-6 rounded-lg border flex items-center justify-center gap-2 text-base transition-colors"}}
 {{template "topNav" .Nav}}

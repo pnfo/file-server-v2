@@ -1,0 +1,11 @@
+// Cloudflare Worker in front of the private R2 bucket: checks signed download links (server/sign.go).
+// Deploy: cd worker && npx wrangler deploy      Secret: npx wrangler secret put LINK_SECRET
+{
+  "name": "tipitaka-library-files",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-11-01",
+  "workers_dev": false,
+  "routes": [{ "pattern": "library.tipitaka.lk", "custom_domain": true }],
+  "r2_buckets": [{ "binding": "BUCKET", "bucket_name": "tipitaka-library" }],
+  "observability": { "enabled": true }
+}

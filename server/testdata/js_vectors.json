@@ -3333,54 +3333,6 @@
    "x%2By%3Dz%26%3F%23"
   ]
  ],
- "sign": [
-  {
-   "objectKey": "library/අ{1}/x[v]{2}.pdf",
-   "fileName": "x - v.pdf",
-   "mode": "inline",
-   "out": {
-    "url": "https://tipitaka.sgp1.cdn.digitaloceanspaces.com/library/%E0%B6%85%7B1%7D/x%5Bv%5D%7B2%7D.pdf?AWSAccessKeyId=AK%2F%2B%3D&Expires=1790877600&Signature=S00CQj8IaOONAsKz3Ayl4DWffHQ%3D&response-content-disposition=inline%3B%20filename%3D%22file.pdf%22%3B%20filename%2A%3DUTF-8%27%27x%2520-%2520v.pdf",
-    "expires": 1790877600
-   }
-  },
-  {
-   "objectKey": "cloud/a b/c(1)!*.mp3",
-   "fileName": "c (1)!'.mp3",
-   "mode": "attachment",
-   "out": {
-    "url": "https://tipitaka.sgp1.cdn.digitaloceanspaces.com/cloud/a%20b/c%281%29%21%2A.mp3?AWSAccessKeyId=AK%2F%2B%3D&Expires=1790877600&Signature=1qkWaYtxZWVl8nms7JGE1ceVvjo%3D&response-content-disposition=attachment%3B%20filename%3D%22file.mp3%22%3B%20filename%2A%3DUTF-8%27%27c%2520%25281%2529%2521%2527.mp3",
-    "expires": 1790877600
-   }
-  },
-  {
-   "objectKey": "cloud/x{3}.m4a",
-   "fileName": "x.m4a",
-   "mode": "stream",
-   "out": {
-    "url": "https://tipitaka.sgp1.cdn.digitaloceanspaces.com/cloud/x%7B3%7D.m4a?AWSAccessKeyId=AK%2F%2B%3D&Expires=1790877600&Signature=vAU%2FUWRS11pI6nccaRmMyyRjXFk%3D",
-    "expires": 1790877600
-   }
-  },
-  {
-   "objectKey": "library/noext{4}",
-   "fileName": "noext",
-   "mode": "inline",
-   "baseUrl": "https://tipitaka.lk/fs-dl",
-   "out": {
-    "url": "https://tipitaka.lk/fs-dl/library/noext%7B4%7D?AWSAccessKeyId=AK%2F%2B%3D&Expires=1790877600&Signature=VQQiyn7L5B2kYY7zN5cz%2FOUuXl8%3D&response-content-disposition=inline%3B%20filename%3D%22file%22%3B%20filename%2A%3DUTF-8%27%27noext",
-    "expires": 1790877600
-   }
-  },
-  {
-   "objectKey": "library/ü{5}.pdf",
-   "fileName": "පොත - ü.pdf",
-   "mode": "attachment",
-   "out": {
-    "url": "https://tipitaka.sgp1.cdn.digitaloceanspaces.com/library/%C3%BC%7B5%7D.pdf?AWSAccessKeyId=AK%2F%2B%3D&Expires=1790877600&Signature=ZfGd%2Fxiw7Gy9p35F3rgRmER2gaw%3D&response-content-disposition=attachment%3B%20filename%3D%22file.pdf%22%3B%20filename%2A%3DUTF-8%27%27%25E0%25B6%25B4%25E0%25B7%259C%25E0%25B6%25AD%2520-%2520%25C3%25BC.pdf",
-    "expires": 1790877600
-   }
-  }
- ],
  "ua": [
   [
    "Mozilla/5.0 (Linux; Android 14; SM-A146P Build/UP1A; wv) AppleWebKit/537.36 Chrome/128.0 Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/480.0.0.48.86;]",

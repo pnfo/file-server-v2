@@ -3,7 +3,7 @@
 //   npm run test:e2e
 //
 // Needs: config/secrets.json, Google Chrome (or CHROME=/path/to/chrome), and the bucket CORS rule allowing
-// http://localhost:4321 (admin -> Bucket -> Set CORS rule). Starts the server (server/bin/file_server, built by
+// http://localhost:4321 (README, "Bucket CORS"). Starts the server (server/bin/file_server, built by
 // `npm run build`) on :4321 with this repo's config/ and data/ unless one is already running there.
 // Everything happens inside a new "fs-v2 e2e" folder in the library site, which is deleted at the end
 // (also after a failure). Leftovers from an interrupted run are removed before starting.
@@ -17,7 +17,7 @@ const APP = path.resolve(path.dirname(new URL(import.meta.url).pathname), '../..
 process.chdir(APP)
 const B = 'http://localhost:4321'
 const ROOT = 'library'
-const CDN = `https://tipitaka.sgp1.cdn.digitaloceanspaces.com/${ROOT}`
+const CDN = `https://library.tipitaka.lk/${ROOT}`
 const PREFIX = 'fs-v2 e2e'
 const PW = JSON.parse(fs.readFileSync('config/secrets.json', 'utf-8')).adminPassword
 const s3 = await import('./s3.mjs')

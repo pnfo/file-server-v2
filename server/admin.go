@@ -1,6 +1,6 @@
 package main
 
-// Admin operations. Upload bytes never pass through this server: the browser PUTs straight to Spaces with a
+// Admin operations. Upload bytes never pass through this server: the browser PUTs straight to R2 with a
 // presigned URL, then calls commit (design §7). Every write rebuilds the in-memory index.
 
 import (
@@ -235,7 +235,7 @@ func (s *SiteStore) StartUpload(b body) (orderedMap, error) {
 	id := s.reserveID()
 	rel := dir + buildFileName(name, version, id, typ)
 	contentType := firstNonEmpty(b.str("contentType"), getTypeInfo(typ).Mime, "application/octet-stream")
-	u, err := s3PresignPut(s.objectKey(rel), contentType, false)
+	u, err := s3PresignPut(s.objectKey(rel), contentType)
 	if err != nil {
 		delete(s.reserved, id)
 		return nil, err
@@ -304,7 +304,7 @@ func (s *SiteStore) PreviewUploadURLs(id int, count float64) ([]string, error) {
 		return urls, nil
 	}
 	for i := 0; i < int(count); i++ {
-		u, err := s3PresignPut(s.previewKey(id, i), "image/jpeg", true)
+		u, err := s3PresignPut(s.previewKey(id, i), "image/jpeg")
 		if err != nil {
 			return nil, err
 		}

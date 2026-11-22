@@ -38,7 +38,8 @@ function beacon(id: string) {
   const url = `${base}/api/hit/${id}`
   if (!navigator.sendBeacon?.(url)) fetch(url, { method: 'POST', keepalive: true }).catch(() => {})
 }
-const expiringSoon = (el: HTMLElement) => Number(el.dataset.expires || 0) * 1000 - Date.now() < 10 * 60_000
+// data-expires is 0 for a public link (cloud), which never expires
+const expiringSoon = (el: HTMLElement) => { const t = Number(el.dataset.expires || 0); return t > 0 && t * 1000 - Date.now() < 10 * 60_000 }
 async function freshLink(el: HTMLElement) {
   const r = await fetch(`${base}/api/link/${el.dataset.hit}?mode=${el.dataset.mode || 'inline'}`)
   const { url, expires } = await r.json() as { url: string; expires: number }

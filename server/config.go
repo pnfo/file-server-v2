@@ -12,24 +12,25 @@ import (
 
 var siteIDs = []string{"library", "cloud"}
 
-const (
-	bucket     = "tipitaka"
-	s3Endpoint = "sgp1.digitaloceanspaces.com"
-	cdnHost    = "tipitaka.sgp1.cdn.digitaloceanspaces.com"
-)
-
 type SiteConfig struct {
 	ID             string `json:"-"`
 	FileTypeName   string `json:"fileTypeName"`
 	RootFolderName string `json:"rootFolderName"`
 	WebURLRoot     string `json:"webUrlRoot"`
 	S3RootFolder   string `json:"s3RootFolder"`
-	OgImage        string `json:"ogImage"`
-	DisplayThumbs  bool   `json:"displayThumbs"`
-	IDToInfoFile   string `json:"idToInfoFile"`
+	// Bucket is the R2 bucket that holds S3RootFolder. PublicHost serves it: a Worker that checks signed links
+	// (Signed, worker/) or the bucket's own public custom domain (plain permanent URLs).
+	Bucket        string `json:"bucket"`
+	PublicHost    string `json:"publicHost"`
+	Signed        bool   `json:"signed"`
+	OgImage       string `json:"ogImage"`
+	DisplayThumbs bool   `json:"displayThumbs"`
+	IDToInfoFile  string `json:"idToInfoFile"`
 }
 
 type Keys struct {
+	// Endpoint is the R2 S3 API host: <account id>.r2.cloudflarestorage.com
+	Endpoint        string `json:"endpoint"`
 	AccessKeyID     string `json:"accessKeyId"`
 	SecretAccessKey string `json:"secretAccessKey"`
 }
@@ -38,7 +39,8 @@ type Secrets struct {
 	AdminPassword string `json:"adminPassword"`
 	SessionSecret string `json:"sessionSecret"`
 	S3            Keys   `json:"s3"`
-	Signer        *Keys  `json:"signer"`
+	// LinkSecret signs download links of signed sites; the Worker holds the same value as LINK_SECRET.
+	LinkSecret string `json:"linkSecret"`
 	// APITokens are bearer tokens for /admin/api/* (api.go), by name: {"claude": "<random, 32+ chars>"}
 	APITokens map[string]string `json:"apiTokens"`
 }
@@ -87,6 +89,9 @@ func getSiteConfig(id string) *SiteConfig {
 		log.Fatalf("config/%s.json: %v", id, err)
 	}
 	c.ID = id
+	if c.Bucket == "" || c.PublicHost == "" {
+		log.Fatalf("config/%s.json: bucket and publicHost are required", id)
+	}
 	siteConfigs[id] = c
 	return c
 }
@@ -96,12 +101,37 @@ var getSecrets = sync.OnceValue(func() *Secrets {
 	if err := readJSON("config/secrets.json", s); err != nil {
 		log.Fatalf("config/secrets.json: %v", err)
 	}
-	if s.Signer == nil {
-		log.Print(`config/secrets.json has no "signer" key - signing download links with the read/write key. Create a read-only Spaces key.`)
-		s.Signer = &s.S3
+	if s.LinkSecret == "" {
+		log.Fatal(`config/secrets.json: "linkSecret" is required (it signs library download links)`)
 	}
 	return s
 })
+
+// bucketFor is the bucket of a full object key, chosen by its root folder. Keys outside every site root
+// (the backups of a public site) live in the private bucket.
+func bucketFor(key string) string {
+	root, _, _ := strings.Cut(key, "/")
+	private := ""
+	for _, id := range siteIDs {
+		c := getSiteConfig(id)
+		if c.S3RootFolder == root {
+			return c.Bucket
+		}
+		if c.Signed && private == "" {
+			private = c.Bucket
+		}
+	}
+	return private
+}
+
+// dbBackupKey is where a site's nightly DB snapshot goes. It must never be publicly readable: the Worker refuses
+// <root>/backups/, and a public site's snapshots go to <root>-db-backups/ in the private bucket.
+func dbBackupKey(c *SiteConfig, name string) string {
+	if c.Signed {
+		return c.S3RootFolder + "/backups/" + name
+	}
+	return c.S3RootFolder + "-db-backups/" + name
+}
 
 type prefixInfo struct {
 	site    string
