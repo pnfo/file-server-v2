@@ -1,19 +1,14 @@
 package main
 
-// Token access to the admin API for scripts and AI sessions (docs/api.md).
+// The admin API for scripts and AI sessions (docs/api.md): every request needs "Authorization: Bearer <token>",
+// checked against secrets.json "apiTokens" ({name: token}). Failed tokens are rate limited per IP.
 //
-// A request with "Authorization: Bearer <token>" is checked against secrets.json "apiTokens" ({name: token}) instead
-// of the session cookie. Tokens reach only /admin/api/*, never the HTML admin pages. The X-Fs-Admin CSRF header is not
-// needed: a bearer header is never sent by a browser on its own. Failed tokens count toward the login rate limit.
-//
-// On top of the POST actions the admin page uses, a token (or a session) gets:
 //   GET  entry?id=N           the entry, its folder path, and a folder's children (unpublished included)
 //   GET  list?folder=N        a folder's children (0 = root)
 //   GET  search?q=...&max=N   name / version / author search over every entry, unpublished included
 //   GET  source-url?id=N      a presigned GET of the file (1 h)
-//   POST replace-url {id, fileName?}   back up the current object, then a presigned PUT to the same key
-//   POST replace-commit {id}           re-read the object size and save; previews are left for the caller to redo
-// Deleting a file with a token first copies it to backups/deleted/ (cookie deletes are unchanged).
+//   POST actions: adminAPI in web.go. replace-url backs up the current object first; delete copies a file to
+//   backups/deleted/ first.
 
 import (
 	"context"

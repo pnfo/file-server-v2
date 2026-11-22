@@ -700,21 +700,6 @@ func TestEditionsOnPages(t *testing.T) {
 	if strings.Contains(w.Body.String(), "වෙනත් සංස්කරණ") {
 		t.Error("no editions section without a group")
 	}
-	w = httptest.NewRecorder()
-	adminEdit(w, httptest.NewRequest("GET", "/library/admin/edit/2", nil), site, "2")
-	if html := w.Body.String(); !strings.Contains(html, `href="/library/admin/edit/7"`) || !strings.Contains(html, `href="/library/admin/edit/9"`) {
-		t.Errorf("admin edit page:\n%s", html)
-	}
-	// the folder picker: current folder selected, every folder offered, disabled for a folder with contents
-	if html := w.Body.String(); !strings.Contains(html, `data-initial="1"`) || !strings.Contains(html, `<option value="1" selected>අභිධර්ම</option>`) ||
-		!strings.Contains(html, `<option value="4">hidden folder</option>`) || strings.Contains(html, `id="f-parent" name="parentId" class="field" data-initial="1" disabled`) {
-		t.Errorf("folder picker on a file page:\n%s", html)
-	}
-	w = httptest.NewRecorder()
-	adminEdit(w, httptest.NewRequest("GET", "/library/admin/edit/1", nil), site, "1")
-	if html := w.Body.String(); !strings.Contains(html, `data-initial="0" disabled`) || strings.Contains(html, `<option value="1"`) {
-		t.Errorf("folder picker on a folder with contents:\n%s", html)
-	}
 }
 
 func TestSaveMetaMove(t *testing.T) {

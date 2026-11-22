@@ -1,3 +1,0 @@
-/* Admin stylesheet for the Go server's asset build (scripts/build-assets.mjs): shared styles + admin components. */
-@import "./global.css";
-@import "./admin.css";

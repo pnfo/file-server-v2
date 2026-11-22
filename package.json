@@ -11,19 +11,17 @@
     "build": "node scripts/build-assets.mjs && go build -C server -o bin/file_server .",
     "dev": "npm run build && server/bin/file_server",
     "test": "go test -C server ./... && node worker/test.mjs",
-    "test:e2e": "node test/e2e/admin.e2e.mjs",
+    "test:e2e": "uv run test/e2e/api.e2e.py",
     "check": "tsc --noEmit",
     "icons": "node scripts/gen-icons.mjs",
     "deploy": "./deploy.sh",
     "deploy:worker": "cd worker && npx wrangler deploy"
   },
   "devDependencies": {
-    "@aws-sdk/client-s3": "^3.1144.0",
     "@mdi/js": "^7.4.47",
     "@tailwindcss/cli": "^4.3.3",
     "@types/node": "^22",
     "esbuild": "^0.28.2",
-    "pdfjs-dist": "^6.3.289",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.9"
   }

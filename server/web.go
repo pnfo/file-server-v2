@@ -32,8 +32,7 @@ type SiteCtx struct {
 	IsAlias bool
 	Cfg     *SiteConfig
 	Store   *SiteStore
-	IsAdmin bool
-	// APIClient is the name of the API token the request came with ("" for the session cookie)
+	// APIClient is the name of the API token the request came with
 	APIClient string
 }
 
@@ -577,9 +576,7 @@ func buildFileView(s *SiteCtx, e *Entry, ua string) FileView {
 	}
 	v.ChromeIntent = template.URL(chromeIntent(v.PageURL))
 	v.SafariURL = template.URL("x-safari-" + v.PageURL)
-	if e.Author != "" {
-		v.Stats = append(v.Stats, Stat{"කතෘ", e.Author})
-	}
+	// the author is in the header, under the title
 	if e.PublishingYear != 0 {
 		v.Stats = append(v.Stats, Stat{"ප්‍රකාශිත වර්ෂය", strconv.Itoa(e.PublishingYear)})
 	}
@@ -598,296 +595,41 @@ func buildFileView(s *SiteCtx, e *Entry, ua string) FileView {
 	return v
 }
 
-// ---- admin -----------------------------------------------------------------------------------
+// ---- admin API ---------------------------------------------------------------------------------
+// Token only (api.go, docs/api.md). The browser admin (login, file list, upload and edit pages) was removed in
+// 2026-11: tools/fsapi.py does everything it did.
 
 func serveAdmin(w http.ResponseWriter, r *http.Request, s *SiteCtx, rest []string) {
 	w.Header().Set("Cache-Control", "no-store")
-	isLogin := len(rest) > 0 && rest[0] == "login"
-	isAPI := len(rest) > 0 && rest[0] == "api"
-	if tok, present := bearerToken(r); present {
-		// token requests: the API only, never a cookie fallback; failures share the login rate limit
-		ip := clientKey(r)
-		if !isAPI {
-			writeJSON(w, 403, map[string]string{"error": "tokens work only for /admin/api/*"})
-			return
-		}
-		if !loginAllowed(ip) {
-			writeJSON(w, 429, map[string]string{"error": "too many failed attempts - try again later"})
-			return
-		}
-		name := apiTokenName(tok)
-		recordLogin(ip, name != "")
-		if name == "" {
-			writeJSON(w, 401, map[string]string{"error": "invalid token"})
-			return
-		}
-		s.IsAdmin, s.APIClient = true, name
-		if len(rest) == 2 && r.Method == http.MethodGet {
-			adminAPIGet(w, r, s, rest[1])
-		} else if len(rest) == 2 && r.Method == http.MethodPost {
-			adminAPI(w, r, s, rest[1])
-		} else {
-			writeJSON(w, 404, map[string]string{"error": "not found"})
-		}
-		return
-	}
-	if c, err := r.Cookie(sessionCookie); err == nil {
-		s.IsAdmin = verifySession(c.Value)
-	}
-	if !s.IsAdmin && !isLogin {
-		if isAPI {
-			writeJSON(w, 401, map[string]string{"error": "login required"})
-		} else {
-			redirect(w, s.Base+"/admin/login", http.StatusFound)
-		}
-		return
-	}
-	// CSRF: admin API writes must come from our own scripts (a custom header can't be sent cross-site without CORS)
-	if isAPI && r.Method != http.MethodGet && r.Header.Get("X-Fs-Admin") != "1" {
-		plainText(w, http.StatusForbidden, "Forbidden")
-		return
-	}
-	switch {
-	case len(rest) == 0:
-		adminIndex(w, r, s)
-	case rest[0] == "login" && len(rest) == 1:
-		adminLogin(w, r, s)
-	case rest[0] == "logout" && len(rest) == 1 && r.Method == http.MethodPost:
-		http.SetCookie(w, &http.Cookie{Name: sessionCookie, Value: "deleted", Path: s.Base + "/admin", MaxAge: -1, Expires: time.Unix(0, 0)})
-		redirect(w, s.Base+"/admin/login", http.StatusSeeOther)
-	case rest[0] == "upload" && len(rest) == 1:
-		adminUpload(w, r, s)
-	case rest[0] == "bucket" && len(rest) == 1:
-		adminBucket(w, r, s)
-	case rest[0] == "edit" && len(rest) == 2:
-		adminEdit(w, r, s, rest[1])
-	case rest[0] == "api" && len(rest) == 2 && r.Method == http.MethodPost:
-		adminAPI(w, r, s, rest[1])
-	case rest[0] == "api" && len(rest) == 2 && r.Method == http.MethodGet:
-		adminAPIGet(w, r, s, rest[1])
-	default:
+	if len(rest) != 2 || rest[0] != "api" {
 		notFoundPage(w)
-	}
-}
-
-// AdminPage is what the admin layout needs.
-type AdminPage struct {
-	S          *SiteCtx
-	Title      string
-	Assets     Assets
-	Sites      []AdminSiteLink
-	Nav        []AdminNavLink
-	PublicHref string
-	D          any
-}
-type AdminSiteLink struct {
-	Href, Label string
-	Active      bool
-}
-type AdminNavLink struct {
-	Href, Label string
-	Active      bool
-}
-
-func newAdminPage(r *http.Request, s *SiteCtx, title string) *AdminPage {
-	p := &AdminPage{S: s, Title: title, Assets: assets}
-	sub := strings.TrimPrefix(r.URL.Path, s.Base) // "/admin/..."
-	q := jsTrim(r.URL.Query().Get("q"))
-	folder := r.URL.Query().Get("folder")
-	// "Public site" opens the public page for whatever is being looked at here
-	switch m := regexp.MustCompile(`^/admin/edit/(\d+)`).FindStringSubmatch(sub); {
-	case m != nil:
-		p.PublicHref = s.Base + "/" + m[1]
-	case q != "":
-		p.PublicHref = s.Base + "/search/" + encodeURIComponent(strings.ToLower(q))
-	case folder != "" && folder != "0":
-		p.PublicHref = s.Base + "/" + folder
-	default:
-		p.PublicHref = s.Base + "/"
-	}
-	for _, id := range siteIDs {
-		label := "Cloud"
-		if id == "library" {
-			label = "Library"
-		}
-		p.Sites = append(p.Sites, AdminSiteLink{"/" + prefixFor(id, s.IsAlias) + "/admin", label, id == s.ID})
-	}
-	upload := s.Base + "/admin/upload"
-	if folder != "" {
-		upload += "?folder=" + folder
-	}
-	p.Nav = []AdminNavLink{
-		{s.Base + "/admin", "Files", sub == "/admin" || strings.HasPrefix(sub, "/admin/edit")},
-		{upload, "Upload", strings.HasPrefix(sub, "/admin/upload")},
-		{s.Base + "/admin/bucket", "Bucket", strings.HasPrefix(sub, "/admin/bucket")},
-	}
-	return p
-}
-
-type AdminRow struct {
-	E         *Entry
-	Type      TypeInfo
-	Size      SizeInfo
-	Href      string
-	Muted     bool
-	Downloads string
-}
-
-func adminIndex(w http.ResponseWriter, r *http.Request, s *SiteCtx) {
-	st := s.Store
-	q := strings.ToLower(jsTrim(r.URL.Query().Get("q")))
-	folderID, _ := parseID(firstNonEmpty(r.URL.Query().Get("folder"), "0"))
-	st.mu.RLock()
-	defer st.mu.RUnlock()
-	folder := st.GetAny(folderID)
-	if folderID == 0 {
-		folder = nil
-	}
-	// admin sees everything, including unpublished and missing entries.
-	// search: id, plain substring (finds unpublished/missing too) and the public singlish search
-	var rows []*Entry
-	if q != "" {
-		found := map[int]bool{}
-		for _, e := range st.Search(q, 500).Entries {
-			found[e.ID] = true
-		}
-		for _, e := range st.Ordered() {
-			if found[e.ID] || strconv.Itoa(e.ID) == q || strings.Contains(strings.ToLower(e.Name), q) || strings.Contains(strings.ToLower(e.Version), q) {
-				rows = append(rows, e)
-			}
-		}
-	} else {
-		for _, e := range st.Ordered() {
-			if e.ParentID == folderID {
-				rows = append(rows, e)
-			}
-		}
-	}
-	rows = rows[:min(len(rows), 500)]
-	var crumbs []*Entry
-	if folder != nil {
-		crumbs = append(st.Parents(folder.ID), folder)
-	}
-	var view []AdminRow
-	files := 0
-	for _, e := range rows {
-		href := fmt.Sprintf("%s/admin/edit/%d", s.Base, e.ID)
-		if e.IsFolder() {
-			href = fmt.Sprintf("%s/admin?folder=%d", s.Base, e.ID)
-		} else {
-			files++
-		}
-		dl := ""
-		if e.IsFile() {
-			dl = formatNumber(e.Downloads)
-		}
-		view = append(view, AdminRow{e, getTypeInfo(e.Type), getSizeInfo(e.SizeBytes), href, !(e.IsPublished && e.MissingSince == ""), dl})
-	}
-	title := "Files"
-	if folder != nil && folder.Name != "" {
-		title = folder.Name
-	}
-	heading := "All files"
-	if q != "" {
-		heading = "Search: " + q
-	} else if folder != nil {
-		heading = folder.Name
-	}
-	p := newAdminPage(r, s, title)
-	p.D = map[string]any{"Q": q, "FolderID": folderID, "Folder": folder, "Crumbs": crumbs, "Rows": view, "Heading": heading,
-		"FolderCount": len(rows) - files, "FileCount": files, "Capped": len(rows) == 500}
-	b, err := render("admin_index", "adminLayout", p)
-	writeHTML(w, 200, b, err)
-}
-
-func adminLogin(w http.ResponseWriter, r *http.Request, s *SiteCtx) {
-	errMsg := ""
-	if r.Method == http.MethodPost {
-		ip := clientKey(r)
-		if !loginAllowed(ip) {
-			errMsg = "Too many attempts. Try again in 15 minutes."
-		} else {
-			ok := checkPassword(r.FormValue("password"))
-			recordLogin(ip, ok)
-			if ok {
-				http.SetCookie(w, &http.Cookie{Name: sessionCookie, Value: createSession(), Path: s.Base + "/admin", MaxAge: sessionTTL,
-					HttpOnly: true, SameSite: http.SameSiteStrictMode, Secure: r.Header.Get("X-Forwarded-Proto") == "https"})
-				redirect(w, s.Base+"/admin", http.StatusFound)
-				return
-			}
-			errMsg = "Incorrect password."
-		}
-	}
-	p := newAdminPage(r, s, "Sign in")
-	p.D = map[string]any{"Error": errMsg}
-	b, err := render("admin_login", "adminLayout", p)
-	writeHTML(w, 200, b, err)
-}
-
-func adminUpload(w http.ResponseWriter, r *http.Request, s *SiteCtx) {
-	st := s.Store
-	folderID, _ := parseID(firstNonEmpty(r.URL.Query().Get("folder"), "0"))
-	type opt struct {
-		ID   int
-		Path string
-	}
-	st.mu.RLock()
-	var folders []opt
-	for _, f := range st.byIDOrder() {
-		if !f.IsFolder() {
-			continue
-		}
-		var names []string
-		for _, p := range append(st.Parents(f.ID), f) {
-			names = append(names, p.Name)
-		}
-		folders = append(folders, opt{f.ID, strings.Join(names, " / ")})
-	}
-	st.mu.RUnlock()
-	coll := newCollator()
-	sort.SliceStable(folders, func(i, j int) bool { return coll.Compare(folders[i].Path, folders[j].Path) < 0 })
-	p := newAdminPage(r, s, "Upload")
-	p.D = map[string]any{"FolderID": folderID, "Folders": folders}
-	b, err := render("admin_upload", "adminLayout", p)
-	writeHTML(w, 200, b, err)
-}
-
-func adminBucket(w http.ResponseWriter, r *http.Request, s *SiteCtx) {
-	lastSync := s.Store.DB.GetMeta("last_sync")
-	if lastSync != "" {
-		lastSync = strings.Replace(lastSync, "T", " ", 1)[:min(16, len(lastSync))] + " UTC"
-	} else {
-		lastSync = "never"
-	}
-	p := newAdminPage(r, s, "Bucket")
-	p.D = map[string]any{"LastSync": lastSync}
-	b, err := render("admin_bucket", "adminLayout", p)
-	writeHTML(w, 200, b, err)
-}
-
-func adminEdit(w http.ResponseWriter, r *http.Request, s *SiteCtx, idStr string) {
-	st := s.Store
-	st.mu.RLock()
-	defer st.mu.RUnlock()
-	var e *Entry
-	if id, ok := parseID(idStr); ok {
-		e = st.GetAny(id)
-	}
-	if e == nil {
-		redirect(w, s.Base+"/admin", http.StatusFound)
 		return
 	}
-	pages := make([]string, len(e.PreviewPages))
-	for i, n := range e.PreviewPages {
-		pages[i] = strconv.Itoa(n)
+	tok, present := bearerToken(r)
+	if !present {
+		writeJSON(w, 401, map[string]string{"error": "token required (docs/api.md)"})
+		return
 	}
-	p := newAdminPage(r, s, "Edit "+e.Name)
-	p.D = map[string]any{"E": e, "Type": getTypeInfo(e.Type), "Size": getSizeInfo(e.SizeBytes), "Previews": st.Previews(e),
-		"Crumbs": st.Parents(e.ID), "HasChildren": e.IsFolder() && st.anyChild(e.ID), "IsFile": e.IsFile(),
-		"PagesValue": strings.Join(pages, ", "), "ParentForDelete": max(e.ParentID, 0), "Description": template.HTML(e.Description),
-		"Editions": st.editions(e, false), "Folders": st.FolderChoices(e.ID)}
-	b, err := render("admin_edit", "adminLayout", p)
-	writeHTML(w, 200, b, err)
+	ip := clientKey(r) // failed tokens are rate limited per IP
+	if !loginAllowed(ip) {
+		writeJSON(w, 429, map[string]string{"error": "too many failed attempts - try again later"})
+		return
+	}
+	name := apiTokenName(tok)
+	recordLogin(ip, name != "")
+	if name == "" {
+		writeJSON(w, 401, map[string]string{"error": "invalid token"})
+		return
+	}
+	s.APIClient = name
+	switch r.Method {
+	case http.MethodGet:
+		adminAPIGet(w, r, s, rest[1])
+	case http.MethodPost:
+		adminAPI(w, r, s, rest[1])
+	default:
+		writeJSON(w, 404, map[string]string{"error": "not found"})
+	}
 }
 
 func adminAPI(w http.ResponseWriter, r *http.Request, s *SiteCtx, action string) {
@@ -906,11 +648,7 @@ func adminAPI(w http.ResponseWriter, r *http.Request, s *SiteCtx, action string)
 	case "publish":
 		res, err = st.SaveMeta(id, body{"isPublished": b.truthy("isPublished")})
 	case "delete":
-		if s.APIClient != "" {
-			res, err = st.apiDelete(id)
-		} else if err = st.DeleteEntry(id); err == nil {
-			res = map[string]bool{"ok": true}
-		}
+		res, err = st.apiDelete(id)
 	case "replace-url":
 		res, err = st.StartReplace(id, fileNameOf(b))
 	case "replace-commit":
@@ -978,12 +716,4 @@ func orZeroNaN(f float64) int {
 		return nanID
 	}
 	return int(f)
-}
-
-func requestOrigin(r *http.Request) string {
-	scheme := "http"
-	if p := r.Header.Get("X-Forwarded-Proto"); p != "" {
-		scheme = p
-	}
-	return scheme + "://" + r.Host
 }

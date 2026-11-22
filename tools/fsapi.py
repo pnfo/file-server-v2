@@ -17,6 +17,7 @@
     uv run tools/fsapi.py previews ID FILE [--pages 1,5]  (re)make PDF preview images from a local copy
     uv run tools/fsapi.py editions ID ID [...] | editions --clear ID
     uv run tools/fsapi.py rm ID                          delete (files are backed up first)
+    uv run tools/fsapi.py sync [--run]                   compare the bucket with the database (dry run unless --run)
 
 Settings: FS_API_URL (default https://tipitaka.lk/library; use .../cloud for the cloud site) and FS_API_TOKEN
 (default: apiTokens.claude from config/secrets.json). Every command prints JSON.
@@ -210,6 +211,14 @@ def cmd_rm(a):
     out(api("delete", id=a.id))
 
 
+def cmd_sync(a):
+    r = api("sync", dryRun=not a.run)
+    for k in ("added", "updated", "restored", "missing", "skipped"):  # the lists can be long: counts, then the first few
+        v = r.get(k) or []
+        r[k] = {"count": len(v), "first": v[:20]}
+    out(r)
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
@@ -238,6 +247,7 @@ def main():
     s = sub.add_parser("previews"); s.add_argument("id", type=int); s.add_argument("file"); s.add_argument("--pages", help="e.g. 1,12"); s.set_defaults(f=cmd_previews)
     s = sub.add_parser("editions"); s.add_argument("ids", type=int, nargs="+"); s.add_argument("--clear", action="store_true"); s.set_defaults(f=cmd_editions)
     s = sub.add_parser("rm"); s.add_argument("id", type=int); s.set_defaults(f=cmd_rm)
+    s = sub.add_parser("sync"); s.add_argument("--run", action="store_true", help="apply (default: dry run)"); s.set_defaults(f=cmd_sync)
 
     a = p.parse_args()
     a.f(a)

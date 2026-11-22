@@ -43,7 +43,7 @@
           {{if $t.ShowDownloads}}<td class="hidden sm:table-cell py-1.5 px-2 align-middle text-right text-sm text-text-muted tabular-nums">{{if $e.IsFile}}{{$e.Downloads}}{{end}}</td>{{end}}
           {{if $t.ShowDateAdded}}<td class="hidden sm:table-cell py-1.5 px-2 align-middle text-right text-sm text-text-muted tabular-nums whitespace-nowrap">{{if $e.IsFile}}{{$e.DateAdded}}{{end}}</td>{{end}}
           <td class="py-1.5 px-2 align-middle text-right text-sm whitespace-nowrap tabular-nums">
-            <span>{{.Size.Numeral}}</span><span class="text-xs ml-1 font-medium {{unitColor .Size.Unit}}">{{.Size.Unit}}</span>
+            <span>{{.Size.Numeral}}</span><span class="text-xs ml-1 text-text-muted">{{.Size.Unit}}</span>
           </td>
         </tr>
       {{end}}
@@ -93,6 +93,8 @@
     <div class="min-w-0">
       <h1 class="text-xl sm:text-2xl font-normal leading-snug break-words {{.NameFont}}">{{$e.Name}}.{{$e.Type}}</h1>
       {{if $e.Version}}<p class="text-sm text-text-muted mt-1 {{.VersionFont}}">{{$e.Version}}</p>{{end}}
+      {{if $e.Author}}<p class="text-base text-text-muted mt-1 {{fontClass $e.Author}}">{{$e.Author}}</p>{{end}}
+      {{if .Editions}}<a href="#editions" class="si inline-flex items-center gap-1.5 text-sm text-link hover:text-primary mt-1">{{icon "book"}}වෙනත් සංස්කරණ {{len .Editions}} ක් ඇත</a>{{end}}
     </div>
   </div>
 
@@ -101,11 +103,6 @@
       ඔබගේ අතිරික්සුව (browser) audio අංගය සඳහා සහාය නොදක්වයි.
     </audio>
   {{end}}
-
-  <dl class="flex flex-col gap-1.5 text-base">
-    {{range .Stats}}<div class="flex gap-2"><dt class="text-text-muted">{{.K}} :</dt><dd class="text-primary tabular-nums {{fontClass .V}}">{{.V}}</dd></div>{{end}}
-    <div class="flex gap-2"><dt class="text-text-muted">ගොනුවේ ප්‍රමාණය :</dt><dd class="tabular-nums">{{.Size.Numeral}} <span class="text-sm font-semibold {{unitColor .Size.Unit}}">{{.Size.Unit}}</span></dd></div>
-  </dl>
 
   {{if .Browser.InApp}}
     <div class="flex flex-col gap-2 py-2 border-y border-border/50">
@@ -145,8 +142,13 @@
     </button>
   </div>
 
+  <dl class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-6 gap-y-3 py-3 border-y border-border/50">
+    {{range .Stats}}<div><dt class="text-xs text-text-muted">{{.K}}</dt><dd class="text-base tabular-nums {{fontClass .V}}">{{.V}}</dd></div>{{end}}
+    <div><dt class="text-xs text-text-muted">ගොනුවේ ප්‍රමාණය</dt><dd class="text-base tabular-nums">{{.Size.Numeral}} <span class="text-sm text-text-muted">{{.Size.Unit}}</span></dd></div>
+  </dl>
+
   {{if .Editions}}
-    <section class="flex flex-col gap-1 mt-2" data-editions>
+    <section id="editions" class="flex flex-col gap-1 mt-2 scroll-mt-20" data-editions>
       <p class="flex items-center gap-2 text-text-muted text-base">
         {{icon "book" "text-info text-lg"}}<span>වෙනත් සංස්කරණ</span>
       </p>

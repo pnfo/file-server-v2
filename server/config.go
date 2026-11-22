@@ -36,9 +36,7 @@ type Keys struct {
 }
 
 type Secrets struct {
-	AdminPassword string `json:"adminPassword"`
-	SessionSecret string `json:"sessionSecret"`
-	S3            Keys   `json:"s3"`
+	S3 Keys `json:"s3"`
 	// LinkSecret signs download links of signed sites; the Worker holds the same value as LINK_SECRET.
 	LinkSecret string `json:"linkSecret"`
 	// APITokens are bearer tokens for /admin/api/* (api.go), by name: {"claude": "<random, 32+ chars>"}

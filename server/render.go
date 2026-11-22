@@ -19,10 +19,8 @@ var templateFS embed.FS
 
 // Assets are the hashed file names written by scripts/build-assets.mjs (dist/manifest.json).
 type Assets struct {
-	SiteJS   string `json:"site.js"`
-	AdminJS  string `json:"admin.js"`
-	SiteCSS  string `json:"site.css"`
-	AdminCSS string `json:"admin.css"`
+	SiteJS  string `json:"site.js"`
+	SiteCSS string `json:"site.css"`
 }
 
 var assets Assets
@@ -66,7 +64,6 @@ var funcs = template.FuncMap{
 	"fontClass":   fontClass,
 	"size":        getSizeInfo,
 	"typeInfo":    getTypeInfo,
-	"unitColor":   sizeUnitColor,
 	"num":         formatNumber,
 	"trustURL":    func(s string) template.URL { return template.URL(s) },
 	"trustHTML":   func(s string) template.HTML { return template.HTML(s) },
@@ -75,10 +72,7 @@ var funcs = template.FuncMap{
 	"join":        strings.Join,
 	"dict":        dict,
 	"themeScript": func() template.HTML { return themeScript },
-	"adminThemeScript": func() template.HTML {
-		return `<script>try { document.documentElement.classList.toggle('dark', localStorage.getItem('fs-theme') !== 'light') } catch {}</script>`
-	},
-	"sprite": func() template.HTML { return iconSprite },
+	"sprite":      func() template.HTML { return iconSprite },
 	// hiddenUnless is `${cond ? '' : 'hidden'}`
 	"hiddenUnless": func(b bool) string {
 		if b {
@@ -89,10 +83,11 @@ var funcs = template.FuncMap{
 }
 
 const themeScript template.HTML = `<script>
-    // theme: our key, else the old site's saved setting (same origin), else dark
+    // theme: our key, else the old site's saved setting (same origin), else the device's setting
     try {
       let t = localStorage.getItem('fs-theme')
-      if (!t) { const o = JSON.parse(localStorage.getItem('settings') || '{}'); t = o.darkMode === false ? 'light' : 'dark' }
+      if (!t) { const o = JSON.parse(localStorage.getItem('settings') || '{}'); if (typeof o.darkMode === 'boolean') t = o.darkMode ? 'dark' : 'light' }
+      if (!t) t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
       document.documentElement.classList.toggle('dark', t !== 'light')
     } catch {}
   </script>`
@@ -137,7 +132,7 @@ func loadTemplates() {
 		return compressHTML(string(b))
 	}
 	base := template.New("base").Funcs(funcs)
-	for _, shared := range []string{"layout.html", "admin_layout.html", "components.html"} {
+	for _, shared := range []string{"layout.html", "components.html"} {
 		template.Must(base.New(shared).Parse(read(shared)))
 	}
 	entries, err := fs.ReadDir(templateFS, "templates")

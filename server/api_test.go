@@ -11,7 +11,7 @@ func TestAPITokenAuth(t *testing.T) {
 	good := strings.Repeat("a", 40)
 	old := getSecrets
 	getSecrets = func() *Secrets {
-		return &Secrets{SessionSecret: "x", AdminPassword: "pw", APITokens: map[string]string{"claude": good, "short": "tooshort"}}
+		return &Secrets{APITokens: map[string]string{"claude": good, "short": "tooshort"}}
 	}
 	t.Cleanup(func() { getSecrets = old })
 	s := testStore(t)
@@ -38,7 +38,7 @@ func TestAPITokenAuth(t *testing.T) {
 	if code, out := call("GET", "api/entry?id=4", "Bearer "+good, "1.1.1.1", ""); code != 200 || out["entry"] == nil {
 		t.Errorf("entry 4: %d %v", code, out)
 	}
-	// POSTs with a token need no X-Fs-Admin header; an unknown id is a 400, not a 403
+	// an unknown id is a 400
 	if code, _ := call("POST", "api/replace-commit", "Bearer "+good, "1.1.1.1", `{"id":999}`); code != 400 {
 		t.Errorf("token POST: %d", code)
 	}
@@ -53,11 +53,11 @@ func TestAPITokenAuth(t *testing.T) {
 	if code, _ := call("GET", "api/list", "Bearer "+good, "2.2.2.2", ""); code != 429 {
 		t.Errorf("rate limit: %d", code)
 	}
-	// tokens don't open HTML admin pages
-	if code, _ := call("GET", "upload", "Bearer "+good, "1.1.1.1", ""); code != 403 {
-		t.Errorf("html page with token: %d", code)
+	// the browser admin is gone: only /admin/api/* exists
+	if code, _ := call("GET", "upload", "Bearer "+good, "1.1.1.1", ""); code != 404 {
+		t.Errorf("old admin page: %d", code)
 	}
-	// without a token or cookie the API stays closed
+	// without a token the API stays closed
 	if code, _ := call("GET", "api/list", "", "3.3.3.3", ""); code != 401 {
 		t.Errorf("no auth: %d", code)
 	}

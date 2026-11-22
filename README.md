@@ -1,10 +1,10 @@
 # File server v2
 
-The download pages of [tipitaka.lk/library](https://tipitaka.lk/library/) and [tipitaka.lk/cloud](https://tipitaka.lk/cloud/), with an admin for the files in two Cloudflare R2 buckets (`tipitaka-library`, private; `tipitaka-public`, public). Until 2026-11 the files were in a DigitalOcean Spaces bucket.
+The download pages of [tipitaka.lk/library](https://tipitaka.lk/library/) and [tipitaka.lk/cloud](https://tipitaka.lk/cloud/), and a token API to manage the files in two Cloudflare R2 buckets (`tipitaka-library`, private; `tipitaka-public`, public). Until 2026-11 the files were in a DigitalOcean Spaces bucket.
 
 A Go server (`server/`, one static binary) with SQLite (`modernc.org/sqlite`, pure Go) and `html/template` pages. One process serves `/library` and `/cloud` and uses about 35 MB. Node is only needed on your machine, to build the browser assets (esbuild, Tailwind 4) and run the end-to-end test. Until 2026-10-05 this was an Astro/Node server; [docs/go-rewrite.md](docs/go-rewrite.md) describes the port and how it was checked page for page against the old server.
 
-Scripts and Claude sessions can view, add, replace and edit files with a token: [docs/api.md](docs/api.md) (`uv run tools/fsapi.py ...`).
+Files are managed only through the token API: [docs/api.md](docs/api.md) (`uv run tools/fsapi.py ...`): view, add, replace, edit, move, delete, sync. The browser admin was removed in 2026-11.
 
 Design and reasoning: [docs/design.md](docs/design.md). UI parity rules and the download pitfalls it avoids: [docs/design-concerns.md](docs/design-concerns.md).
 
@@ -19,17 +19,17 @@ Downloads never pass through the server, and R2 charges nothing for egress.
 config/            library.json, cloud.json (site settings), secrets.json (git-ignored, see secrets.example.json)
 data/              <site>.db SQLite files (git-ignored)
 server/            Go server: web.go (routes), store.go (in-memory index + search), sign.go (download links),
-                   admin.go, sync.go, s3.go, db.go, collate.go (Sinhala sort order), templates/ (pages)
+                   admin.go + api.go (the token API), sync.go, s3.go, db.go, collate.go (Sinhala sort order), templates/ (pages)
 server/testdata/   expected outputs captured from the old Node code (formatting, sanitizer, sort order);
                    link_vectors.json: signed links, checked by the Go tests and the Worker test
 worker/            Cloudflare Worker for library.tipitaka.lk (src/index.ts), its test (test.mjs), wrangler.jsonc
-src/client/        browser code: site.ts (public pages), admin.ts (loads pdf.js on demand), lightbox.ts
-src/styles/        Tailwind CSS (global.css for the public pages, admin-bundle.css for the admin)
+src/client/        browser code: site.ts (public pages), lightbox.ts
+src/styles/        Tailwind CSS (global.css)
 scripts/           build-assets.mjs (browser assets -> server/dist), gen-icons.mjs (server/icons.go from @mdi/js)
 deploy/nginx/      nginx config, included from the droplet's site config
 deploy.sh          build + upload + restart on the droplet
 tools/fsapi.py     command-line client for the token API (docs/api.md)
-test/e2e/          browser end-to-end suite
+test/e2e/          end-to-end test of the token API (api.e2e.py)
 ```
 
 ## Commands
@@ -40,11 +40,11 @@ npm run build                       # browser assets -> server/dist, binary -> s
 npm run dev                         # build and serve on http://localhost:4321/library/ (uses ./config and ./data)
 npm test                            # Go unit tests
 npm run check                       # type check the browser code
-npm run test:e2e                    # admin end-to-end in headless Chrome against the real bucket (see below)
+npm run test:e2e                    # token API end-to-end against the real bucket (see below)
 npm run icons                       # after changing the icon list in scripts/gen-icons.mjs
 ./deploy.sh                         # deploy to the droplet (see below)
 
-server/bin/file_server sync library --dry-run   # bucket -> SQLite preview (also in admin -> Bucket)
+server/bin/file_server sync library --dry-run   # bucket -> SQLite preview (also: fsapi.py sync)
 server/bin/file_server sync library             # keeps downloads and metadata
 server/bin/file_server backup                   # snapshot both DBs to <site>/backups/ in the bucket (nightly cron)
 server/bin/file_server snapshot from.db to.db   # consistent copy of a live database
@@ -52,16 +52,13 @@ server/bin/file_server snapshot from.db to.db   # consistent copy of a live data
 
 ## End-to-end test
 
-`npm run test:e2e` drives the admin in headless Chrome against the real bucket, in about a minute. It starts `server/bin/file_server` on :4321 with this repo's `config/` and `data/` if nothing is running there. It covers:
-- creating, renaming, publishing and deleting folders;
-- uploading a PDF and a text file;
-- the name and key rules;
-- browser-rendered and re-rendered previews;
-- renaming files in the bucket;
-- the public pages and signed links (with `fbclid`);
+`npm run test:e2e` runs [test/e2e/api.e2e.py](test/e2e/api.e2e.py): every `fsapi.py` command against a local server and the real library bucket, in under a minute. It starts `server/bin/file_server` on :4321 with this repo's `config/` and `data/` if nothing is running there. It covers:
+- making folders, adding a PDF (page count, previews) and a text file;
+- the public page, the signed link (with `fbclid`) and the public preview image;
+- rename, move, publish, replace (with its backup), editions, search, download, sync;
 - deleting everything again, then checking nothing is left in the bucket.
 
-It needs `npm run build`, `config/secrets.json`, Google Chrome (or `CHROME=/path`), and the bucket CORS rule for `http://localhost:4321`. All its entries are named `fs-v2 e2e…` and are removed at the end, even after a failure. On a failure it saves a screenshot to `$TMPDIR/fs-e2e-failure.png`.
+It needs `npm run build`, `config/secrets.json`, `uv`, and a recent copy of the server's database in `data/library.db` (the script's header says why and how). All its entries are named `fs-v2 e2e…` and are removed at the end, even after a failure.
 
 ## Configuration
 
@@ -69,9 +66,7 @@ It needs `npm run build`, `config/secrets.json`, Google Chrome (or `CHROME=/path
 
 | key | used for |
 |---|---|
-| `adminPassword` | `/<site>/admin/login` |
-| `sessionSecret` | signs the admin session cookie (long random string) |
-| `s3` | R2 API token (Object Read & Write on both buckets) and `endpoint` (`<account id>.r2.cloudflarestorage.com`): sync, admin uploads/renames/moves/deletes, backups |
+| `s3` | R2 API token (Object Read & Write on both buckets) and `endpoint` (`<account id>.r2.cloudflarestorage.com`): sync, API uploads/renames/moves/deletes, backups |
 | `linkSecret` | signs library download links. The Worker's `LINK_SECRET` must hold the same value. |
 
 `config/library.json` and `config/cloud.json` name each site's `bucket` and `publicHost`, and say whether its links are `signed`.
@@ -106,7 +101,7 @@ This runs the Go tests, builds the assets and a linux/amd64 binary, and uploads 
   - [file-server-go.conf](deploy/nginx/file-server-go.conf): `/fs-assets/`, `/fs-static/`.
 - **Backups:** `crontab -l` runs `./file_server backup` at 03:00 UTC (log: `~/backup.log`). Snapshots go to the private bucket (`library/backups/`, `cloud-db-backups/`); the last 14 stay in `data/backups/`.
 - **TLS:** certbot (systemd timer) renews `tipitaka.lk` and `open.tipitaka.lk`.
-- **Bucket CORS:** browser uploads and PDF previews need it. Both buckets allow GET/PUT/HEAD from `https://tipitaka.lk` and `http://localhost:4321` (dev and the end-to-end test); `tipitaka-public` also allows GET/HEAD from any origin, for the audio timing files the apps fetch. The rules were set with the Cloudflare API (R2 → bucket → Settings → CORS policy in the dashboard). The `s3` token (Object Read & Write) cannot read or change them, so the admin has no CORS button.
+- **Bucket CORS:** `tipitaka-public` allows GET/HEAD from any origin, for the audio timing files the apps fetch. Both buckets also still allow GET/PUT/HEAD from `https://tipitaka.lk` and `http://localhost:4321`, which only the removed browser admin needed. The rules are set in the Cloudflare dashboard (R2 → bucket → Settings → CORS policy) or API; the `s3` token cannot change them.
 
 ## Cloudflare
 
@@ -128,8 +123,8 @@ DNS for `tipitaka.lk` is on Cloudflare (free plan). Every record of the droplet 
 - Bucket naming is unchanged: `name[version]{id}.type`, folders `name{id}`. A folder segment without `{id}` makes everything below it unlisted (reachable by id, not listed).
 - Files that disappear from the bucket keep their counts and are hidden (`missing_since`) until they reappear.
 - An unpublished folder hides its whole subtree. Empty folders stay hidden on the public site.
-- Admin can move a file (or an empty folder) to another folder from its edit page; the object moves in the bucket, the id and link stay. Folders that have contents can't be renamed or moved there: do that in the bucket, then sync.
-- Editions: files that are editions of one work share `edition_group` (the smallest id in the group), and each file page lists the others. Set with the admin API `editions` action (`{ids: [...]}` merges, `{ids: [id], clear: true}` takes one out). Sync never changes it.
+- A file (or an empty folder) can be moved to another folder (`fsapi.py meta ID --parent N`); the object moves in the bucket, the id and link stay. Folders that have contents can't be renamed or moved that way: do that in the bucket, then sync.
+- Editions: files that are editions of one work share `edition_group` (the smallest id in the group), and each file page lists the others. Set with the API `editions` action (`{ids: [...]}` merges, `{ids: [id], clear: true}` takes one out). Sync never changes it.
 - PDF previews: `<site>/previews/{id}-{n}.jpg` (public), with the page numbers stored in `preview_pages`. Otherwise the old `thumbs/{id}-{0,1}.jpg` are shown; those are page 1 and page `floor(pages/2)+1` (how `thumb-generator.js` made them), labelled once the page count is known.
 - Page counts: uploads get them from the browser's pdf.js. Every existing PDF was filled in by the old `scripts/page-counts.ts` (in git history).
 - Sort order: listings use ICU's Sinhala order (`Intl.Collator('si')`), reproduced in [server/collate.go](server/collate.go). The test checks it against strings sorted by ICU.

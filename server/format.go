@@ -85,14 +85,6 @@ func getSizeInfo(size int64) SizeInfo {
 	return SizeInfo{strconv.FormatInt(int64(n+0.5), 10), sizeUnits[i]} // Math.round
 }
 
-// sizeUnitColor: design-concerns.md rule 2: GB/TB red, everything else green.
-func sizeUnitColor(unit string) string {
-	if unit == "GB" || unit == "TB" {
-		return "text-rose-500 dark:text-rose-400"
-	}
-	return "text-emerald-600 dark:text-emerald-400"
-}
-
 // UN-Abhaya is used for Sinhala only, in normal weight (no faux bold). The page font stack applies it to
 // Sinhala characters automatically; a line that mixes Sinhala with Latin letters or digits gets the `si`
 // class so the whole line is set in UN-Abhaya (e.g. "PDF ගොනුව බලන්න").

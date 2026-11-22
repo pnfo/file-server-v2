@@ -1,6 +1,6 @@
 # File API (for scripts and Claude sessions)
 
-The admin's JSON API (`/<site>/admin/api/*`) also accepts a bearer token, so scripts and AI sessions can view, add, replace and edit files without the browser admin. The server code is in `server/api.go`.
+The JSON API (`/<site>/admin/api/*`) is the only way to manage files: scripts and AI sessions view, add, replace and edit them with a bearer token. (The browser admin was removed in 2026-11.) The server code is in `server/api.go` and `adminAPI` in `server/web.go`.
 
 ## Quick start: `tools/fsapi.py`
 
@@ -17,18 +17,19 @@ uv run tools/fsapi.py mkdir 1004 "New folder"
 uv run tools/fsapi.py previews 1222 book.pdf --pages 1,14
 uv run tools/fsapi.py editions 1222 1300        # mark as editions of one work; editions --clear 1222 takes one out
 uv run tools/fsapi.py rm 1222
+uv run tools/fsapi.py sync                     # compare the bucket with the database (dry run); --run applies it
 ```
 
-Every command prints JSON (`ls` prints a table unless `--json`). For PDFs, `add` and `replace` render preview images and the page count with PyMuPDF, as the admin page does in the browser. `--no-previews` skips that (a `replace` then keeps the old preview images).
+Every command prints JSON (`ls` prints a table unless `--json`). For PDFs, `add` and `replace` render preview images and the page count with PyMuPDF. `--no-previews` skips that (a `replace` then keeps the old preview images).
 
 The token comes from `FS_API_TOKEN`, or from `apiTokens.claude` in `config/secrets.json`.
 
 ## Safety
 
 - **Tokens.** `config/secrets.json` → `"apiTokens": {"claude": "<random, 32+ chars>"}`. Use one name per user of the API. To revoke a token, remove it and restart the server. Tokens shorter than 32 characters are ignored. Make one with `python3 -c "import secrets; print(secrets.token_urlsafe(32))"`.
-- **Scope.** A token opens `/admin/api/*` only, never the HTML admin pages. It does not fall back to the cookie.
+- **Scope.** Every request needs a token; there is no password login and no cookie.
 - **Rate limit.** A wrong token counts as a failed login. After 5 failures, that IP is blocked for 15 minutes.
-- **Backups.** `replace` copies the current object to `<site>/backups/replaced/<time>-<file name>` first. A token `rm` of a file copies it to `backups/deleted/`. Sync ignores `backups/`. Deletes from the admin page don't make a backup.
+- **Backups.** `replace` copies the current object to `<site>/backups/replaced/<time>-<file name>` first. A token `rm` of a file copies it to `backups/deleted/`. Sync ignores `backups/`.
 - **Audit log.** Every token write is logged as `api <site> [<token name>] <action> <ip>` (`journalctl -u file_server`).
 - **Cache.** After a `replace`, a library file changes at once. A cloud file keeps its public URL, so Cloudflare and browsers can serve the old bytes until their cached copy expires; purge the URL in the Cloudflare dashboard if it matters. Page metadata changes at once.
 
@@ -49,10 +50,11 @@ Send `Authorization: Bearer <token>`. Request and response bodies are JSON. Erro
 | POST | `replace-commit` | `{id, numPages?, clearPreviews?}` | the entry (size read from the bucket) |
 | POST | `save` | `{id, name?, version?, author?, publishingYear?, printedYear?, description?, isPublished?, parentId?, editionGroup?}` | the entry (a name, version or folder change moves the object) |
 | POST | `publish` | `{id, isPublished}` | the entry |
-| POST | `preview-urls` | `{id, count}` (1–6) | `{urls}`: PUT JPEGs with `x-amz-acl: public-read` |
+| POST | `preview-urls` | `{id, count}` (1–6) | `{urls}`: PUT JPEGs (`Content-Type: image/jpeg`) |
 | POST | `previews` | `{id, pages, numPages}` | the entry |
 | POST | `editions` | `{ids}` or `{ids: [id], clear: true}` | `{editionGroup, ids}` |
 | POST | `delete` | `{id}` | `{ok, backup}` (a folder must be empty) |
+| POST | `sync` | `{dryRun?}` | `{dryRun, objects, files, folders, added, updated, restored, missing, skipped}`: bucket → database |
 
 File bytes never pass through the server. `upload-url` and `replace-url` return a presigned PUT URL. Upload to it with exactly the `Content-Type` returned, then call `commit` or `replace-commit`. Uploading to a `replace-url` URL replaces the object in one step, so a failed upload leaves the old file in place.
 

@@ -24,18 +24,19 @@
 
 /* colour tokens from design-concerns.md (matching the Vuetify light/dark themes) */
 :root {
-  --c-background: 250 250 250;
-  --c-surface: 255 255 255;
-  --c-surface-hover: 240 240 240;
-  --c-border: 224 224 224;
-  --c-primary: 230 81 0;
-  --c-text: 33 33 33;
-  --c-text-muted: 97 97 97;
-  --c-info: 21 101 192;
-  --c-link: 21 101 192;
-  --c-success: 46 125 50;
-  --c-warning: 245 127 23;
-  --c-error: 198 40 40;
+  /* light: warm paper instead of white and cool grey, softer ink, a calmer link blue (2026-11) */
+  --c-background: 247 244 237;
+  --c-surface: 253 251 246;
+  --c-surface-hover: 240 235 225;
+  --c-border: 226 219 206;
+  --c-primary: 191 78 14;
+  --c-text: 46 40 34;
+  --c-text-muted: 112 102 90;
+  --c-info: 38 92 150;
+  --c-link: 34 82 138;
+  --c-success: 62 122 70;
+  --c-warning: 190 120 20;
+  --c-error: 176 52 44;
 }
 html.dark {
   --c-background: 26 26 26;
